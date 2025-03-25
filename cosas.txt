@@ -1,0 +1,19 @@
+
+
+Botón para abrirl la autenticación con google 
+
+<a href="{{ url('/auth/google') }}">
+    <button>Iniciar sesión con Google</button>
+</a>
+
+
+
+Función base de mithril
+=====================
+function Base() {
+    return {
+        view: function () {
+            return m("", "content");
+        },
+    };
+}
