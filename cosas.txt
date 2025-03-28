@@ -17,3 +17,64 @@ function Base() {
         },
     };
 }
+
+Redireccion 
+================
+m.route.set("/nueva-ruta");
+
+
+con datos adicionales 
+m.route.set("/perfil", { userId: 123 });
+
+
+sin dejar ir atras sin permitir que el usuario use el botón "Atrás", puedes pasar un segundo parámetro false:
+m.route.set("/nueva-ruta", null, { replace: true });
+
+
+Implementación básica para controlar el ciclo de vida del token:
+Si decides que el usuario debe iniciar sesión nuevamente después de que el token haya expirado, la implementación sería la siguiente:
+
+En el backend (Laravel):
+
+Asegúrate de que cualquier solicitud a una ruta protegida valide el token en el middleware de auth:sanctum.
+
+php
+Copiar
+Editar
+// En routes/api.php
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+En el frontend (JavaScript con Mithril):
+
+Verifica el código de respuesta de las peticiones (especialmente el 401 Unauthorized) y, si el token ha expirado, redirige al usuario a la página de login.
+
+javascript
+Copiar
+Editar
+m.request({
+    method: "GET",
+    url: "/api/user",
+    headers: {
+        "Authorization": `Bearer ${token}` // El token guardado en el cliente
+    }
+}).then((response) => {
+    // Procesar la respuesta
+}).catch((error) => {
+    if (error.status === 401) {
+        // El token expiró, redirigir al login
+        m.route.set("/login");
+        alert("Tu sesión ha expirado, por favor inicia sesión nuevamente.");
+    }
+});
+¿Cómo implementar el refresco del token (opcional)?
+Si prefieres implementar un sistema de refresh tokens, puedes seguir este patrón:
+
+Generar un refresh token y un access token.
+
+Guardar el refresh token en una cookie segura o en el almacenamiento local.
+
+Crear un endpoint de refresh token en el backend para obtener un nuevo token.
+
+En el frontend, verificar si el token ha expirado y usar el refresh token para obtener uno nuevo sin necesidad de que el usuario vuelva a iniciar sesión.
+

@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // 🔹 REGISTRO
     public function register(Request $request)
     {
         $request->validate([
@@ -29,7 +30,6 @@ class AuthController extends Controller
         return response()->json(['token' => $token, 'user' => $user], 201);
     }
 
-    // 🔹 LOGIN
     public function login(Request $request)
     {
         $request->validate([
@@ -40,23 +40,48 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Las credenciales son incorrectas.'],
-            ]);
+            return response()->json([
+                'message' => ['Las credenciales proporcionadas no son correctas.'],
+            ], 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $user]);
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ]
+        ], 200);
     }
 
-    // 🔹 OBTENER USUARIO AUTENTICADO
+    public function isAuthenticated(Request $request)
+    {
+        $user = Auth::user(); 
+
+        if (!$user) {
+            return response()->json([
+                'auth' => false,
+                'message' => 'Token inválido o expirado.'
+            ], 401);
+        }
+
+        return response()->json([
+            'auth' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ]
+        ], 200);
+    }
+
+
     public function me(Request $request)
     {
         return response()->json($request->user());
     }
 
-    // 🔹 CERRAR SESIÓN
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

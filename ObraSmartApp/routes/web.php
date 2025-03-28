@@ -5,9 +5,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 
-Route::get('/', function () {
+/* Route::get('/', function () {
     return view('welcome');
-});
+}); */
 
 Route::get('/auth/google', function () {
     return Socialite::driver('google')->redirect();
@@ -25,7 +25,7 @@ Route::get('/auth/google/callback', function () {
         ]
     );
 
-    
+
     Auth::login($user);
 
     return redirect('/dashboard');
