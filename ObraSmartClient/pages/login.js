@@ -2,19 +2,11 @@
 const urlLogin = "http://127.0.0.1:8000/api/login"
 
 function LoginPage() {
+    let style = { width: "100%", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f0f0f0" };
     return {
         oncreate: () => { window.scrollTo(0, 0); },
         view: function () {
-            return m(Main);
-        }
-    }
-}
-
-function Main() {
-    let style = { width: "100%", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f0f0f0" };
-    return {
-        view: function () {
-            return m("main", { style: { ...style } }, m(FormComponent));
+            return m("div", { style: { ...style } }, m(FormComponent));
         }
     }
 }
@@ -31,12 +23,17 @@ function FormComponent() {
     return {
         badCredentials: false,
         login: function (e) {
-            e.preventDefault()
-            let formData = new FormData(e.target);
+            e.preventDefault();
+            let loginData = {
+                email: e.target.email.value,
+                password: e.target.password.value,
+                remember: document.getElementById("rememberMe").checked
+            };
+            //console.log("Enviando datos: ", JSON.stringify(loginData));
             m.request({
                 method: "POST",
                 url: urlLogin,
-                body: formData,
+                body: loginData,
                 extract: (xhr) => {
                     return {
                         status: xhr.status,
@@ -44,24 +41,32 @@ function FormComponent() {
                     }
                 }
             }).then((data) => {
-                console.log("Datos devueltos del back: ", data)
                 if (data.status === 200 && data.response.user != null) {
-                    this.badCredentials = false
-                    localStorage.setItem("auth_token", data.response.token)
+                    this.badCredentials = false;
+                    // se guardar token de acuerdo a la opción "Recuérdame"
+                    if (loginData.remember) {
+                        localStorage.setItem("auth_token", data.response.token);
+                    } else {
+                        sessionStorage.setItem("auth_token", data.response.token);
+                    }
                     localStorage.setItem("user", data.response.user.id);
-                    console.log("Inicio de sesión exitoso");
-                    m.route.set("/home")
+                    m.route.set("/home");
                 }
                 if (data.status === 401 && data.response.user == null) {
-                    this.badCredentials = true
-                    localStorage.clear()
-                    console.log(data.response.message);
+                    this.badCredentials = true;
+                    localStorage.clear();
+                    sessionStorage.clear();
                 }
-                m.redraw()
-                console.log("Ningún caso más.");
+                m.redraw();
             }).catch((error) => {
-                console.log("Error en la peticíon de login: ", error)
-            })
+            });
+        },
+        oncreate: function () {
+            if (localStorage.getItem("auth_token")) {
+                m.route.set("/home");
+            } else {
+                m.route.set("/login");
+            }
         },
         view: function () {
             return m("div.col-lg-6.col-10", { style: { ...style.containerStyle } }, [
@@ -70,11 +75,11 @@ function FormComponent() {
                 ]),
                 m("div.col-lg-8.col-md-10.col-12", [
                     m("form.row.g-3", { onsubmit: (e) => this.login(e) }, [
-                        m("input", { type: "text", name: "email", placeholder: "Username or Email", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) }}),
+                        m("input", { type: "text", name: "email", placeholder: "Username or Email", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
                         m("input", { type: "password", name: "password", placeholder: "Password", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
-                        this.badCredentials ? 
-                        m("p", { style: { color: "red", fontSize: "14px" } }, "Usuario o contraseña incorrectos") 
-                        : null,
+                        this.badCredentials ?
+                            m("p", { style: { color: "red", fontSize: "14px" } }, "Usuario o contraseña incorrectos")
+                            : null,
                         m("div.row", [
                             m("div.col-6", { style: { marginBottom: "10px" } }, [
                                 m("input", { type: "checkbox", id: "rememberMe" }),

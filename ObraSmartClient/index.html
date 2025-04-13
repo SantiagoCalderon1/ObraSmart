@@ -11,15 +11,24 @@
     <!-- Bootstrap JavaScript Bundle (con Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playwrite+DE+Grund:wght@100..400&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+        rel="stylesheet">
+
     <script src="https://components.digitalvalue.es/lib/mithril.min.js"></script>
+    <script type="module" src="index.js" defer></script>
     <!-- <script src="https://unpkg.com/mithril/mithril.js"></script> -->
     <!-- <script src="https://unpkg.com/mithril@2.0.4/mithril.min.js"></script> >-->
-    <script type="module" src="index.js" defer></script>
+
     <style>
         * {
+            color: #1d1d1d;
             padding: 0;
             margin: 0;
-            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            /* font-family: 'Pacifico','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+            font-family: "Source Code Pro", monospace, "Playwrite DE Grund", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
         .primaryBtn {
@@ -29,11 +38,31 @@
         .secondaryBtn {
             background-color: #38BDF2;
         }
+
+        #container-app {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        #header,
+        #app,
+        #footer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
 <body>
-
+    <div id="app">
+    </div>
 </body>
 
 </html>

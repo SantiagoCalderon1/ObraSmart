@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://components.digitalvalue.es/lib/mithril.min.js"></script>
+    <script type="module" src="index.js" defer></script>
+    <style>
+        * {
+            color: #1d1d1d;
+            padding: 0;
+            margin: 0;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+
+        .primaryBtn {
+            background-color: #F2A516;
+        }
+
+        .secondaryBtn {
+            background-color: #38BDF2;
+        }
+
+        #container-app {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        #header,
+        #app,
+        #footer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <form action="" class="row g-3">
+
+            <div class="col-md-3">
+                <label for="validationServer04" class="form-label">Cliente</label>
+                <!-- Será un select con el nombre del cliente pero con el value client_id -->
+                <select class="form-select is-invalid" id="validationServer04"
+                    aria-describedby="validationServer04Feedback" required>
+                    <option selected disabled value="">Cliente Id...</option>
+                    <option>...</option>
+                </select>
+                <div id="validationServer04Feedback" class="invalid-feedback">
+                    Please select a valid state.
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer04" class="form-label">Projecto</label>
+                <!-- Será un select con el nombre del projecto pero con el value client_id -->
+                <select class="form-select is-invalid" id="validationServer04"
+                    aria-describedby="validationServer04Feedback" required>
+                    <option selected disabled value="">Porjecto Id...</option>
+                    <option>...</option>
+                </select>
+                <div id="validationServer04Feedback" class="invalid-feedback">
+                    Please select a valid state.
+                </div>
+            </div>
+            <div class="col-md-3">
+                <input type="hidden" name="user_id">
+                <!-- Llevará el id del usuario -->
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer04" class="form-label">Projecto</label>
+                <!-- Será un select con el nombre del projecto pero con el value client_id -->
+                <select class="form-select is-invalid" id="validationServer04"
+                    aria-describedby="validationServer04Feedback" required>
+                    <option selected disabled value="">Porjecto Id...</option>
+                    <option>...</option>
+                </select>
+                <div id="validationServer04Feedback" class="invalid-feedback">
+                    Please select a valid state.
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Número de presupuesto</label>
+                <!-- Será un string con el número del presupuesto, empesando por BUD -->
+                <input type="text" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required>
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="validationServer03" class="form-label">Fecha:</label>
+                <!-- Será un datepicker del día que quiere que tenga el presupuesto -->
+                <input type="date" class="form-control is-invalid" id="validationServer03"
+                    aria-describedby="validationServer03Feedback" required>
+                <div id="validationServer03Feedback" class="invalid-feedback">
+                    Please provide a valid city.
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="validationServer03" class="form-label">Fecha de expiración:</label>
+                <!-- Será un datepicker del día que quiere que caduque el presupuesto -->
+                <input type="date" class="form-control is-invalid" id="validationServer03"
+                    aria-describedby="validationServer03Feedback" required>
+                <div id="validationServer03Feedback" class="invalid-feedback">
+                    Please provide a valid city.
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="validationServer03" class="form-label">Total:</label>
+                <!-- Será un datepicker del día que quiere que tenga el presupuesto -->
+                <input type="number" class="form-control is-invalid" id="validationServer03"
+                    aria-describedby="validationServer03Feedback" readonly>
+            </div>
+            <div class="col-md-6">
+                <label for="validationServer04" class="form-label">Estado:</label>
+                <!-- Será un select con 3 opciones, pendiente, aceptado  y rechazado -->
+                <select class="form-select is-invalid" id="validationServer04"
+                    aria-describedby="validationServer04Feedback" required>
+                    <option selected disabled value="">Porjecto Id...</option>
+                    <option>...</option>
+                </select>
+                <div id="validationServer04Feedback" class="invalid-feedback">
+                    Please select a valid state.
+                </div>
+            </div>
+
+            <!--  parte 2 deñ formulario budgets_details-->
+            <div class="col-md-3">
+                <input type="hidden" name="budget_number">
+                <!-- Llevará el id del usuario -->
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Descripción: </label>
+                <!-- Será un string con el número del presupuesto, empesando por BUD -->
+                <input type="text" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required>
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Cantidad:</label>
+                <!-- Será un string con el número del presupuesto, empesando por BUD -->
+                <input type="number" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required min="1">
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Precio unitario:</label>
+                <!-- Será un string con el número del presupuesto, empesando por BUD -->
+                <input type="number" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required min="0.01">
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="validationServer04" class="form-label">Impuestos:</label>
+                <!-- Será un select con muchas opciones, las tengo en la libreta, IVA, IGIC y IPSI -->
+                <select class="form-select is-invalid" id="validationServer04"
+                    aria-describedby="validationServer04Feedback" required>
+                    <option selected disabled value="">Porjecto Id...</option>
+                    <option>...</option>
+                </select>
+                <div id="validationServer04Feedback" class="invalid-feedback">
+                    Please select a valid state.
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Descuento:</label>
+                <!-- minimo 0 -->
+                <input type="number" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required min="0">
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">SubTotal:</label>
+                <!-- Será el subtotal de cada concepto -->
+                <input type="number" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required min="0">
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+
+            <!-- Aquí debería ir el total de todo el presupuesto y debe ser automatico en base a los conceptos  -->
+
+            <div class="col-md-3">
+                <label for="validationServer05" class="form-label">Adjuntar documentación:</label>
+                <!-- Será un input de tipo file pero solo subir un documento-->
+                <input type="file" class="form-control is-invalid" id="validationServer05"
+                    aria-describedby="validationServer05Feedback" required>
+                <div id="validationServer05Feedback" class="invalid-feedback">
+                    Please provide a valid zip.
+                </div>
+            </div>
+
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">Submit form</button>
+            </div>
+    </div>
+    </form>
+</body>
+
+</html>

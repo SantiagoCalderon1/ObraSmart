@@ -1,0 +1,84 @@
+[
+    {
+        "id": 0,
+        "name": "N/A",
+        "description": "Construcción de un edificio de oficinas en Madrid.",
+        "client_id": 1,
+        "status": "N/A",
+        "start_date": "2025-01-01",
+        "end_date": null
+        
+    },{
+        "id": 1,
+        "name": "Proyecto de construcción 1",
+        "description": "Construcción de un edificio de oficinas en Madrid.",
+        "client_id": 1,
+        "status": "in progress",
+        "start_date": "2025-01-01",
+        "end_date": null
+        
+    },
+    {
+        "id": 2,
+        "name": "Proyecto de reforma 2",
+        "description": "Reforma de un local comercial en Barcelona.",
+        "client_id": 2,
+        "status": "completed",
+        "start_date": "2024-06-15",
+        "end_date": "2025-01-30"
+    },
+    {
+        "id": 3,
+        "name": "Proyecto de remodelación 3",
+        "description": "Remodelación de viviendas en Valencia.",
+        "client_id": 3,
+        "status": "in progress",
+        "start_date": "2025-03-10",
+        "end_date": null
+    },
+    {
+        "id": 4,
+        "name": "Proyecto de construcción 4",
+        "description": "Construcción de un puente en Zaragoza.",
+        "client_id": 4,
+        "status": "not started",
+        "start_date": "2025-05-01",
+        "end_date": null
+    },
+    {
+        "id": 5,
+        "name": "Proyecto de rehabilitación 5",
+        "description": "Rehabilitación de un edificio histórico en Sevilla.",
+        "client_id": 5,
+        "status": "in progress",
+        "start_date": "2025-02-01",
+        "end_date": null
+    },
+    {
+        "id": 6,
+        "name": "Proyecto de expansión 6",
+        "description": "Ampliación de un centro comercial en Madrid.",
+        "client_id": 6,
+        "status": "completed",
+        "start_date": "2024-11-01",
+        "end_date": "2025-03-15"
+    },
+    {
+        "id": 7,
+        "name": "Proyecto de remodelación 7",
+        "description": "Remodelación de un hotel en Barcelona.",
+        "client_id": 7,
+        "status": "not started",
+        "start_date": "2025-06-01",
+        "end_date": null
+    },
+    {
+        "id": 8,
+        "name": "Proyecto de infraestructura 8",
+        "description": "Construcción de una autopista en Valencia.",
+        "client_id": 8,
+        "status": "in progress",
+        "start_date": "2025-04-01",
+        "end_date": null
+    }
+]

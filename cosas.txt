@@ -1,3 +1,62 @@
+color negro 
+ #1d1d1d
+
+color naranja
+ #F2A516;
+
+color azuil chillón
+ #38D0F2
+
+color azul
+ #38BDF2
+
+color azul medio
+ #1B8EF2
+
+color azul oscuro
+ #1B8EF2
+
+link a la fuente del texto de la app
+la que parece código
+https://fonts.google.com/specimen/Source+Code+Pro/tester?preview.text=Presupuestos&script=Latn&categoryFilters=Sans+Serif:%2FSans%2FHumanist
+
+la opción backend
+https://fonts.google.com/specimen/Playwrite+DE+Grund
+
+
+
+conexion a phpMyAdmin
+http://localhost:8888/phpMyAdmin5/
+
+usuarios
+
+[
+    {
+        "name": "Juan Andres Rojas",
+        "email": "juan@example.com",
+        "password": "123456",
+        "role": "admin"
+    },
+    {
+        "name": "Ana María López",
+        "email": "ana.lopez@example.com",
+        "password": "password123",
+        "role": "worker"
+    },
+    {
+        "name": "Carlos García",
+        "email": "carlos.garcia@example.com",
+        "password": "mypassword321",
+        "role": "admin"
+    },
+    {
+        "name": "Laura Fernández",
+        "email": "laura.fernandez@example.com",
+        "password": "laura1234",
+        "role": "worker"
+    }
+]
+
 
 
 Botón para abrirl la autenticación con google 
