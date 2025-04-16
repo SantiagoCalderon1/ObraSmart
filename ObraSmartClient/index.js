@@ -49,14 +49,7 @@ function authGuard() {
             return [
                 m("div", {
                     id: "container-app",
-                    style: {
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                        width: "100%",
-                        height: "100%"
-                    }
+                    style: { display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", width: "100%", height: "100%" }
                 }, [
                     isAuthenticated() ? m("header", { id: "header" }, m(HeaderComponent)) : null,
                     m("main", { id: "app", style: { paddingTop: isAuthenticated() ? "7.5vh" : "" } }, children),

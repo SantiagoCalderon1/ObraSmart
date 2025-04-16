@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
+            $table->id("invoice_id");
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('project_id')->nullable();
             $table->unsignedBigInteger('budget_id')->nullable();
@@ -20,13 +20,13 @@ return new class extends Migration
             $table->date('issue_date');
             $table->date('due_date');
             $table->decimal('total', 10, 2);
-            $table->enum('payment_method', ['cash', 'bizum', 'transfer']);
-            $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
+            $table->enum('payment_method', ['efectivo', 'bizum', 'transferencia']);
+            $table->enum('status', ['Pendiente', 'Pagada', 'Rechazada'])->default('Pendiente');
             $table->timestamps();
     
-            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
-            $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
-            $table->foreign('budget_id')->references('id')->on('budgets')->onDelete('set null');
+            $table->foreign('client_id')->references('client_id')->on('clients')->onDelete('set null');
+            $table->foreign('project_id')->references('project_id')->on('projects')->onDelete('set null');
+            $table->foreign('budget_id')->references('budget_id')->on('budgets')->onDelete('set null');
         });
     }
 

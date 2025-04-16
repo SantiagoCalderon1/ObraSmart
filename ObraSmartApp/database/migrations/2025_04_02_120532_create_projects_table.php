@@ -12,16 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
-            $table->id();
+            $table->id("project_id");
             $table->string('name');
             $table->text('description')->nullable();
             $table->unsignedBigInteger('client_id');
-            $table->enum('status', ['in progress', 'completed', 'cancelled'])->default('in progress');
+            $table->unsignedBigInteger('user_id');
+            $table->enum('status', ['en proceso', 'completado', 'cancelado'])->default('en proceso');
+            $table->date('issue_date');
+            $table->date('due_date');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->timestamps();
-    
-            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+            
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('client_id')->references('client_id')->on('clients')->onDelete('set null');
         });
     }
 

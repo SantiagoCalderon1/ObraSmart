@@ -12,15 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoice_details', function (Blueprint $table) {
-            $table->id();
+            $table->id("invoice_details_id");
             $table->unsignedBigInteger('invoice_id');
+            $table->string('concept');
             $table->unsignedBigInteger('user_id');
             $table->text('description');
             $table->decimal('price', 10, 2);
             $table->timestamps();
     
-            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('invoice_id')->references('invoice_id')->on('invoices')->onDelete('set null');
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('set null');
+
+            $table->id("budget_concept_id");
+            $table->unsignedBigInteger('budget_id');
+            $table->string('concept');
+            $table->integer('quantity');
+            $table->decimal('discount', 10, 2);
+            $table->decimal('unit_price', 10, 2);
+            $table->text('description');
+            $table->decimal('tax', 10, 2);
+            $table->decimal('subtotal', 10, 2);
+            $table->timestamps();
+            $table->foreign('budget_id')->references('budget_id')->on('budgets')->onDelete('cascade');
         });
     }
 

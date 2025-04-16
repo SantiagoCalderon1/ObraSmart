@@ -1,9 +1,7 @@
 import { TableListComponent, ModalComponent, ButtonComponent } from "./generalsComponents.js";
 
-
-
 function BudgetsPage() {
-    let style = { width: "100%", minHeight: "92.5vh", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#f0f0f0", paddingBottom:'50px' };
+    let style = { width: "100%", minHeight: "92.5vh", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#f0f0f0", paddingBottom: '50px' };
     return {
         oncreate: () => { window.scrollTo(0, 0); },
         view: function ({ attrs }) {
@@ -65,7 +63,6 @@ function BudgetsFormUpdatePage() {
     }
 }
 
-
 let selectedBudget = null;
 
 function BudgetsListComponent() {
@@ -96,9 +93,9 @@ function BudgetsListComponent() {
                         return {
                             fontWeight: "bold",
                             textTransform: "uppercase",
-                            color: item.status === "accepted"
+                            color: item.status === "Aceptado"
                                 ? "green"
-                                : item.status === "rejected"
+                                : item.status === "Rechazado"
                                     ? "red"
                                     : "black"
                         }
@@ -106,7 +103,7 @@ function BudgetsListComponent() {
                 },
                 { title: "ID Cliente", field: "client_id" },
                 { title: "ID Proyecto", field: "project_id" },
-                { title: "Total", field: "total" },
+                { title: "Total", field: "total", euroSign: "€" },
                 { title: "Fecha", field: "date" }
             ];
 
@@ -121,7 +118,7 @@ function BudgetsListComponent() {
                 data: budgets,
                 onRowClick: onRowClick
             }, [
-                m(ButtonComponent, {  actions: () => m.route.set("/budget/create/0"), text: "Crear Presupuesto" })
+                m(ButtonComponent, { actions: () => m.route.set("/budget/create/0"), text: "Crear Presupuesto" })
             ])
         }
     };
@@ -139,10 +136,10 @@ function BudgetModalDetailsComponent() {
         { title: "Concepto", field: "concept" },
         { title: "Descripción", field: "description" },
         { title: "Cantidad", field: "quantity" },
-        { title: "Impuestos", field: "typeTaxe" },
-        { title: "Descuento", field: "discount" },
-        { title: "Precio Unitario", field: "unit_price" },
-        { title: "Subtotal", field: "subtotal" }
+        { title: "Impuestos", field: "typeTaxe", },
+        { title: "Descuento", field: "discount", euroSign: "€" },
+        { title: "P/U", field: "unit_price", euroSign: "€" },
+        { title: "Subtotal", field: "subtotal", euroSign: "€" }
     ];
 
     function fetchDetails() {
@@ -188,10 +185,10 @@ function BudgetModalDetailsComponent() {
                             ),
                         ]),
                         m("tbody", selectedBudgetDetails ? selectedBudgetDetails.map((detail, index) =>
-                            m("tr.text-center", [m("td", (index + 1)), columns.map((col) => m("td", detail[col.field] || "N/A"))])
+                            m("tr.text-center", [m("td", (index + 1)), columns.map((col) => m("td", [detail[col.field] || "N/A", col.euroSign && detail[col.field] ? col.euroSign : ""]))])
                         ) : null),
                         m("tfoot", [
-                            m("tr", m("th[colspan=8].text-end", `Total ${total.toFixed(2)}`))
+                            m("tr", m("th[colspan=8].text-end", `Total ${total.toFixed(2)} €`))
                         ])
                     ]),
                 ])
@@ -295,22 +292,55 @@ function FormBudgetComponent() {
 
     // Opciones de estado
     const statusOptions = [
-        { value: 1, content: "Pendiente" },
-        { value: 2, content: "Aceptado" },
-        { value: 3, content: "Rechazado" },
+        { value: "Aceptado", content: "Aceptado" },
+        { value: "Pendiente", content: "Pendiente" },
+        { value: "Rechazado", content: "Rechazado" },
     ];
 
-    const createEmptyConcept = () => ({ description: "", quantity: 0, unitPrice: 0, tax: 0, discount: 0, subtotal: 0 });
+    const createHeaderDocument = ({
+        inputClient = "",
+        inputProject = "",
+        inputStatus = "Pendiente",
+        inputCreation = today,
+        inputExpiration = today,
+    } = {}) => ({
+        inputClient,
+        inputProject,
+        inputStatus,
+        inputCreation,
+        inputExpiration,
+    });
+
+    const createConcept = ({
+        concept = "",
+        quantity = 0,
+        unit_price = 0,
+        description = "",
+        tax = 0,
+        discount = 0,
+        subtotal = 0
+    } = {}) => ({
+        concept,
+        quantity,
+        unit_price,
+        description,
+        tax,
+        discount,
+        subtotal
+    });
 
     const state = {
         clients: [],
         projects: [],
-        conceptItems: [createEmptyConcept()],
+        conceptItems: [createConcept()],
         selectedBudget: null,
         budgetDetails: [],
         filterClients: "",
         filterProjects: "",
+        headerDocumentUpdate: [],
+        conceptItemsUpdate: []
     };
+
 
     const fetchData = (url, mapFn = (x) => x) =>
         m.request({ method: "GET", url }).then(data => mapFn(data)).catch(console.error);
@@ -319,7 +349,7 @@ function FormBudgetComponent() {
         state.conceptItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2);
 
     const updateConceptSubtotal = (item) => {
-        const pBruto = item.quantity * item.unitPrice
+        const pBruto = item.quantity * item.unit_price
         const pNeto = pBruto * (1 + parseFloat(item.tax || 0) / 100)
         item.subtotal = Math.max(pNeto - item.discount, 0)
         m.redraw()
@@ -327,12 +357,12 @@ function FormBudgetComponent() {
 
     return {
         oncreate: ({ attrs }) => {
-            const { budget_number } = attrs;
+            const { typeForm, budget_number } = attrs;
 
             fetchData(urls.clients, data => {
                 state.clients = data.map(c => ({
                     id: c.id,
-                    value: c.clients_id_document,
+                    value: c.id,
                     label: `${c.name} ${c.surname} - ${c.clients_id_document}`
                 }));
                 m.redraw();
@@ -350,31 +380,61 @@ function FormBudgetComponent() {
             if (budget_number) {
                 fetchData(urls.Budgets).then(budgets => {
                     state.selectedBudget = budgets.find(b => b.budget_number == budget_number);
+                    console.log("Contenido de state.selectedBudget", state.selectedBudget);
+                    state.headerDocumentUpdate = [
+                        createHeaderDocument({
+                            inputClient: state.selectedBudget.client_id,
+                            inputProject: state.selectedBudget.project_id,
+                            inputStatus: state.selectedBudget.status,
+                            inputCreation: today,
+                            inputExpiration: today,
+                        })]
+                    console.log("Contenido de state.headerDocumentUpdate", state.headerDocumentUpdate);
+
                     return fetchData(urls.BudgetDetails);
                 }).then(details => {
                     state.budgetDetails = details.filter(d => d.budget_id === state.selectedBudget?.id);
+                    console.log("Contenido de state.budgetDetails", state.budgetDetails);
+                    state.conceptItemsUpdate = state.budgetDetails.map((item) =>
+                        createConcept({
+                            concept: item.concept,
+                            quantity: item.quantity,
+                            unit_price: item.unit_price,
+                            description: item.description,
+                            tax: item.tax,
+                            discount: item.discount,
+                            subtotal: item.subtotal
+                        })
+                    )
+                    console.log("Contenido de state.conceptItemsUpdate", state.conceptItemsUpdate);
                     m.redraw();
                 });
             }
         },
 
         view: ({ attrs }) => {
+            const { typeForm } = attrs;
+
             const filterList = (list, keyword) =>
                 list.filter(item => Object.values(item).some(val => String(val).toLowerCase().includes(keyword.toLowerCase())));
 
-            const renderInputGroup = (label, oninput, onclick, icon = "fa-magnifying-glass") =>
+            const renderInputGroup = (label, filterKey, icon = "fa-magnifying-glass") =>
                 m("div.col-md-4.d-flex.flex-column.align-items-start", [
                     m("label.form-label", label),
                     m("div.input-group.flex-nowrap", [
-                        m("input.form-control", { oninput }),
-                        m("span.input-group-text", { onclick }, m("i.fa", { class: icon }))
+                        m("input.form-control", { oninput: e => state[filterKey] = e.target.value }),
+                        m("span.input-group-text", { onclick: e => e.target.closest(".input-group").querySelector("input").focus() }, m("i.fa", { class: icon }))
                     ])
                 ]);
 
-            const renderSelect = (label, options, onchange, id, bclass = "col-md-4") =>
+            const renderSelect = (label, options, id, bclass = "col-md-4", type = 1) =>
                 m("div", { class: bclass }, [
                     m("label.form-label", label),
-                    m("select.form-select", { id, onchange },
+                    m("select.form-select", {
+                        id: id,
+                        value: state.headerDocumentUpdate[0]?.[id],
+                        onchange: e => { state.headerDocumentUpdate[0][id] = e.target.value; m.redraw(); },
+                    },
                         options.map(opt => m("option", { value: opt.value }, opt.label || opt.content))
                     )
                 ]);
@@ -385,20 +445,29 @@ function FormBudgetComponent() {
                     m("input.form-control", {
                         type: "date",
                         id: id,
+                        value: state.headerDocumentUpdate[0]?.[id] || today,
+                        oninput: e => {
+                            state.headerDocumentUpdate[0][id] = e.target.value;
+                            m.redraw();
+                        },
                         min: type == 1 ? "" : today,
                         max: type == 1 ? today : "",
                     })
                 ])
 
+            // Grupo de conceptos
             const renderConcept = (item, index) =>
                 m("div.row.col-12.mt-3.p-0.m-0", [
+                    // Concepto
                     m("div.col-md-6", [
                         m("label.form-label", `Concepto* #${index + 1}`),
                         m("input.form-control", {
                             id: `concept-${index}`,
-                            oninput: e => item.description = e.target.value
+                            value: item.concept,
+                            oninput: e => item.concept = e.target.value
                         })
                     ]),
+                    // Cantidad
                     m("div.col-md-2", [
                         m("label.form-label", "Cantidad *"),
                         m("input.form-control", {
@@ -406,18 +475,22 @@ function FormBudgetComponent() {
                             placeholder: "0",
                             min: 0,
                             id: `quantity-${index}`,
+                            value: item.quantity,
                             oninput: e => { item.quantity = +e.target.value; updateConceptSubtotal(item); }
                         })
                     ]),
+                    // Descuentos
                     m("div.col-md-2", [
                         m("label.form-label", "Descuento"),
                         m("input.form-control", {
                             type: "number",
                             placeholder: "0 €",
                             id: `discount-${index}`,
+                            value: item.discount,
                             oninput: e => { item.discount = +e.target.value; updateConceptSubtotal(item); }
                         })
                     ]),
+                    // Precio unitario
                     m("div.col-md-2", [
                         m("label.form-label", " P / U *"),
                         m("input.form-control", {
@@ -425,50 +498,61 @@ function FormBudgetComponent() {
                             placeholder: "0",
                             min: 0,
                             id: `price-${index}`,
-                            oninput: e => { item.unitPrice = +e.target.value; updateConceptSubtotal(item); }
+                            value: item.unit_price,
+                            oninput: e => { item.unit_price = +e.target.value; updateConceptSubtotal(item); }
                         })
                     ]),
+                    // Descripción
                     m("div.col-md-6.mt-2", [
                         m("label.form-label", "Descripción"),
                         m("textarea.form-control", {
-                            id: `concept-${index}`,
+                            id: `description-${index}`,
                             style: {
                                 height: "38px",
                             },
                             placeholder: "Opcional...",
+                            value: item.description,
                             oninput: e => item.description = e.target.value
                         })
                     ]),
                     m("div.col-md-2"),
-
-                    m("div.col-md-2.mt-2", renderSelect("Impuestos", taxes, e => { item.tax = e.target.value; updateConceptSubtotal(item) }, `tax-${index}`, "col-md-12")),
-
+                    // Select de impuestos
+                    m("div.col-md-2.mt-2", [
+                        m("label.form-label", "Impuestos"),
+                        m("select.form-select", {
+                            id: `tax-${index}`,
+                            value: item.tax,
+                            onchange: e => { item.tax = e.target.value; m.redraw(); },
+                        },
+                            taxes.map(opt => m("option", { value: opt.value }, opt.label || opt.content))
+                        )
+                    ]),
+                    // Suub Total
                     m("div.col-md-2.mt-2", [
                         m("label.form-label", "SubTotal"),
-                        m("input.form-control[readonly]", {
-                            value: `${item.subtotal.toFixed(2)} €`
-                        })
+                        m("input.form-control[readonly]", { id:`subtotal-${index}`,  value: `${item.subtotal.toFixed(2)} €` })
                     ])
                 ])
 
+            // Btns Eliminar y Añadir concepto
             const btnsAction = () =>
                 m("div.col-12.mt-3.d-flex.justify-content-center", [
                     m("div.col-md-6.d-flex.flex-column.flex-md-row.justify-content-between", [
                         m(ButtonComponent, {
                             text: "Eliminar concepto",
                             bclass: "btn btn-danger ",
-                            actions: () => state.conceptItems.length > 1 && state.conceptItems.pop(),
+                            actions: () => typeForm == "update" ? state.conceptItemsUpdate.pop() : state.conceptItems.pop(),
                         }, m("i.fa.fa-trash-can.me-2.ms-2", { style: { color: "white" } })),
                         m(ButtonComponent, {
                             text: "Añadir concepto",
                             bclass: "btn-warning ",
-                            actions: () => state.conceptItems.push(createEmptyConcept()),
+                            actions: () => typeForm == "update" ? state.conceptItemsUpdate.push(createConcept()) : state.conceptItems.push(createConcept()),
                         }, m("i.fa.fa-plus.me-2.ms-2"))
                     ])
                 ])
 
+            // Btns volver y aceptar
             const btnsFoot = () =>
-                // Btns volver y aceptar
                 m("div.col-12.d-flex.justify-content-center", [
                     m("div.col-md-6.d-flex.flex-column.flex-md-row.justify-content-between", [
                         m(ButtonComponent, {
@@ -486,45 +570,37 @@ function FormBudgetComponent() {
                     ])
                 ])
 
+
+            //Formulario completo y renderizado
             return m("div.col-11.col-md-10", { style: style.containerStyle }, [
                 m("div.row.col-12", [
                     m("hr"),
                     m("span.fw-bold.text-uppercase.fs-5", "Cabecera del documento"),
                     m("div.row.col-12.p-0.m-0", [
-                        renderInputGroup("Filtrar clientes", e => state.filterClients = e.target.value, e => e.target.closest(".input-group").querySelector("input").focus()),
-                        renderInputGroup("Filtrar proyectos", e => state.filterProjects = e.target.value, e => e.target.closest(".input-group").querySelector("input").focus()),
+                        renderInputGroup("Filtrar clientes", "filterClients"),
+                        renderInputGroup("Filtrar proyectos", "filterProjects"),
                         renderSelect("Estado", statusOptions, "inputStatus"),
-                        renderSelect("Cliente", filterList(state.clients, state.filterClients), "inputClient"),
-                        renderSelect("Proyecto", filterList(state.projects, state.filterProjects), "inputProject"),
-                        renderInputDate("Creación*", 1, "inputCreation"),
-                        renderInputDate("Expiración*", 2, "inputExpiration"),
-                        m("hr.mt-4"),
+                        renderSelect("Cliente", filterList(state.clients, state.filterClients), "inputClient",),
+                        renderSelect("Proyecto", filterList(state.projects, state.filterProjects), "inputProject",),
+                        renderInputDate("Creación*", 1, "inputCreation",),
+                        renderInputDate("Expiración*", 2, "inputExpiration",),
+                        m("hr.mt-4")
                     ]),
 
                     m("h5", "Conceptos"),
                     // Conceptos dinámicos
-                    state.conceptItems.map(renderConcept),
+                    typeForm == "update" ? state.conceptItemsUpdate.map(renderConcept) : state.conceptItems.map(renderConcept),
                     // Botones añadir/eliminar concepto
                     btnsAction(),
                     // Total
                     m("hr.mt-4"),
-                    m("div.col-12.text-end", [
-                        m("h5", `Total presupuesto: ${totalBudget()} €`)
-                    ]),
+                    m("div.col-12.text-end", [m("h5", `Total presupuesto: ${totalBudget()} €`)]),
                     m("hr.mt-4"),
                     btnsFoot()
                 ])
             ])
         }
-    };
+    }
 }
 
-
-
-
 export { BudgetsPage }
-
-
-
-
-

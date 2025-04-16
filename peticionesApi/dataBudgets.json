@@ -7,7 +7,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -19,7 +19,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -31,7 +31,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -42,7 +42,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -54,7 +54,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -66,7 +66,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -77,7 +77,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -89,7 +89,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -101,7 +101,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -112,7 +112,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -124,7 +124,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -136,7 +136,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -147,7 +147,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -159,7 +159,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -171,7 +171,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -182,7 +182,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -194,7 +194,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -206,7 +206,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },{
@@ -217,7 +217,7 @@
         "budget_number": "BUD12345",
         "date": "2025-04-02",
         "total": 1500.00,
-        "status": "pending",
+        "status": "Pendiente",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -229,7 +229,7 @@
         "budget_number": "BUD12346",
         "date": "2025-04-02",
         "total": 2000.00,
-        "status": "accepted",
+        "status": "Aceptado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     },
@@ -241,7 +241,7 @@
         "budget_number": "BUD12347",
         "date": "2025-04-02",
         "total": 1200.00,
-        "status": "rejected",
+        "status": "Rechazado",
         "created_at": "2025-04-02 15:49:00",
         "updated_at": "2025-04-02 15:49:00"
     }
