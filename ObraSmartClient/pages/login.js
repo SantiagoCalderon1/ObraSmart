@@ -56,6 +56,7 @@ function FormComponent() {
                     this.badCredentials = true;
                     localStorage.clear();
                     sessionStorage.clear();
+                    alert(data.response.message)
                 }
                 m.redraw();
             }).catch((error) => {
@@ -76,9 +77,9 @@ function FormComponent() {
                 m("div.col-lg-8.col-md-10.col-12", [
                     m("form.row.g-3", { onsubmit: (e) => this.login(e) }, [
                         m("input", { type: "text", name: "email", placeholder: "Username or Email", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
-                        m("input", { type: "password", name: "password", placeholder: "Password", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
+                        m("input", { type: "password", name: "password", placeholder: "Password",  autocomplete:"current-password", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
                         this.badCredentials ?
-                            m("p", { style: { color: "red", fontSize: "14px" } }, "Usuario o contraseña incorrectos")
+                            m("p.text-center", { style: { color: "red", fontSize: "14px" } }, "Usuario o contraseña incorrectos")
                             : null,
                         m("div.row", [
                             m("div.col-6", { style: { marginBottom: "10px" } }, [

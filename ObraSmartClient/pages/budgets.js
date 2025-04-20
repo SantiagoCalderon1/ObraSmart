@@ -356,6 +356,37 @@ function FormBudgetComponent() {
     };
 
     return {
+        badForm: false,
+        login: function (e) {
+            e.preventDefault();
+            let loginData = {
+                email: e.target.email.value,
+                password: e.target.password.value,
+            };
+            //console.log("Enviando datos: ", JSON.stringify(loginData));
+            m.request({
+                method: "POST",
+                url: urlLogin,
+                body: loginData,
+                extract: (xhr) => {
+                    return {
+                        status: xhr.status,
+                        response: JSON.parse(xhr.responseText)
+                    }
+                }
+            }).then((data) => {
+                if (data.status === 200 && data.response.user != null) {
+                    this.badCredentials = false;
+                    
+                }
+                if (data.status === 401 && data.response.user == null) {
+                    this.badForm = true;
+
+                }
+                m.redraw();
+            }).catch((error) => {
+            });
+        },
         oncreate: ({ attrs }) => {
             const { typeForm, budget_number } = attrs;
 
@@ -573,7 +604,7 @@ function FormBudgetComponent() {
 
             //Formulario completo y renderizado
             return m("div.col-11.col-md-10", { style: style.containerStyle }, [
-                m("div.row.col-12", [
+                m("form.row.col-12", { onsubmit: (e) => this.login(e) }, [
                     m("hr"),
                     m("span.fw-bold.text-uppercase.fs-5", "Cabecera del documento"),
                     m("div.row.col-12.p-0.m-0", [
