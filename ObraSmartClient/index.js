@@ -9,10 +9,27 @@ import { ContactPage } from "./pages/contact.js"
 import { NotFoundPage } from "./pages/notfound.js" 
  */
 
-const urlAuth = "http://127.0.0.1:8000/api/auth"
+
+// Urls
+const urlLogout = "http://127.0.0.1:8000/api/logout"
+const urlAuth = "http://127.0.0.1:8000/api/me"
+
+
+function Logout() {
+    const token = isAuthenticated()
+    if (token) {
+        m.request({ method: "POST", url: urlLogout, headers: { "Authorization": `Bearer ${token}` } })
+            .finally(() => { localStorage.clear(); sessionStorage.clear() })
+    } else {
+        localStorage.clear()
+        sessionStorage.clear()
+    }
+    m.route.set("/login")
+}
+
 
 function isAuthenticated() {
-    return localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
+    return localStorage.getItem("token") || sessionStorage.getItem("token")
 }
 
 // Función para proteger rutas con Bearer Token
@@ -25,24 +42,15 @@ function authGuard() {
                 m.route.set("/login")
                 return
             }
-            m.request({
-                method: "GET",
-                url: urlAuth,
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            }).then((data) => {
-                console.log("Datos devueltos del backend:", data)
-                if (!data.auth) {
+            m.request({ method: "GET", url: urlAuth, headers: { "Authorization": `Bearer ${token}` } })
+            .then((data) => {
+                if (data.status === 401) {
                     console.log("Usuario no autenticado, redirigiendo a /login")
                     m.route.set("/login")
                 }
             }).catch((error) => {
-                console.log("Error en la petición de auth:", error)
-                console.log("Token inválido o expirado, redirigiendo a login")
-                localStorage.clear()
-                sessionStorage.clear()
-                m.route.set("/login")
+                console.error("Error:", error)
+                m.route.set("/login");
             })
         },
         view: function ({ children }) {
@@ -66,9 +74,10 @@ const routes = {
     '/login': { view: () => m(LoginPage) },
     /*     '/register': { view: () => m(RegisterPage) }, */
     // Rutas protegidas (Solo accesibles si está autenticado)
+    '/logout': { view: () => Logout() },
     '/home': { view: () => m(authGuard, m(HomePage)) },
     '/budgets': { view: () => m(authGuard, m(BudgetsPage, { option: "list" })) },
-    '/budget/:option/:id': { view: ({attrs}) => m(authGuard, m(BudgetsPage, { option : attrs.option, id: attrs.id})) },
+    '/budget/:option/:id': { view: ({ attrs }) => m(authGuard, m(BudgetsPage, { option: attrs.option, id: attrs.id })) },
 
 }
 

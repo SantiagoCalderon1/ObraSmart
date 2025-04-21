@@ -19,5 +19,16 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Añadir más seeders
+        $this->call([
+            UserSeeder::class,
+            ClientSeeder::class,
+            ProjectSeeder::class,
+            BudgetSeeder::class,
+            BudgetDetailSeeder::class,
+            //InvoiceSeeder::class,
+        ]);
+        // se ejecuta esto php artisan migrate:fresh --seed
     }
 }

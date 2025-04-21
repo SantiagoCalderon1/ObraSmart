@@ -1,5 +1,19 @@
 import { TableListComponent, ModalComponent, ButtonComponent } from "./generalsComponents.js";
 
+//Varibales Globales
+
+/* 
+Json de prueba
+
+let urlBudgets = "../peticionesApi/dataBudgets.json";
+let urlBudgetDetails = "../peticionesApi/dataBudgetDetails.json";
+*/
+
+//Api Real
+const urlBudgets = "http://127.0.0.1:8000/api/budgets"
+const urlBudgetDetails = "http://127.0.0.1:8000/api/budgets-details/"
+const token = localStorage.getItem("token") || sessionStorage.getItem("token")
+
 function BudgetsPage() {
     let style = { width: "100%", minHeight: "92.5vh", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#f0f0f0", paddingBottom: '50px' };
     return {
@@ -27,13 +41,40 @@ function BudgetsPage() {
 }
 
 function BudgetsListPage() {
+    let selectedBudget = null;
+    let selectedBudgetDetails = null
     return {
         view: function () {
+
             return [
                 m("h1", { style: { padding: "30px 0", textTransform: "uppercase" } }, "Presupuestos"),
-                m(BudgetsListComponent),
-                m(BudgetModalDetailsComponent, { idModal: "ModalDetailsBudgetsList" }),
-                m(BudgetModalConfirmationComponent, { idModal: "ModalDeleteBudget", titulo: "Confirmación de eliminación", mensaje: `¿Está seguro de eliminar el presupuesto con #${selectedBudget?.budget_number}?`, slug: "/budgets" }),
+                m(BudgetsListComponent, {
+                    onBudgetSelect: (budget, data) => {
+                        selectedBudget = budget; selectedBudgetDetails = data;
+                        m.redraw();
+                    }
+                }),
+                m(BudgetModalDetailsComponent, {
+                    idModal: "ModalDetailsBudgetsList",
+                    tituloModal: `Detalles Presupuesto #${selectedBudget?.budget_number}`,
+                    budget: selectedBudget,
+                    budgetDetails: selectedBudgetDetails
+                }),
+                m(BudgetModalConfirmation, {
+                    idModal: "ModalDeleteBudget",
+                    tituloModal: "Confirmación de eliminación",
+                    mensaje: `¿Está seguro de eliminar el presupuesto con #${selectedBudget?.budget_number}?`,
+                    actions: () => {
+                        m.request({ method: "DELETE", url: urlBudgets + "/" + selectedBudget?.budget_id, headers: { "Authorization": `Bearer ${token}` } })
+                            .then((data) => {
+                                console.log("Data de eliminación: ", data);
+                                m.redraw();
+                            }).catch(() => { //console.log("Error al obtener los datos de budgets: ", error); 
+                            });
+                        m.route.set("/budgets");
+                        m.redraw();
+                    },
+                }),
             ]
         }
     }
@@ -41,11 +82,19 @@ function BudgetsListPage() {
 
 function BudgetsFormCreatePage() {
     return {
-        view: function ({ attrs }) {
+        view: function () {
             return [
                 m("h1", { style: { padding: "30px 0", textTransform: "uppercase" } }, "Nuevo Presupuesto"),
                 m(FormBudgetComponent, { typeForm: "create" }),
-                m(BudgetModalConfirmationComponent, { idModal: "ModalCancelationBudget", titulo: "Confirmación", mensaje: "¿Está seguro de cancelar la creación del presupuesto?", slug: "/budgets" }),
+                m(BudgetModalConfirmation, {
+                    idModal: "ModalCancelationBudget",
+                    tituloModal: "Confirmación de cacelación",
+                    mensaje: "¿Está seguro de cancelar la creación del nuevo presupuesto?",
+                    actions: () => {
+                        m.route.set("/budgets");
+                        m.redraw();
+                    }
+                })
             ]
         }
     }
@@ -57,27 +106,33 @@ function BudgetsFormUpdatePage() {
             return [
                 m("h1.text-center", { style: { padding: "30px 0", textTransform: "uppercase" } }, `Actualizando el Presupuesto ${attrs.budget_number}`),
                 m(FormBudgetComponent, { typeForm: "update", budget_number: attrs.budget_number }),
-                m(BudgetModalConfirmationComponent, { idModal: "ModalCancelationBudget", titulo: "Confirmación de cancelación", mensaje: "¿Está seguro de cancelar la actualización del presupuesto?", slug: "/budgets" }),
+                m(BudgetModalConfirmation, {
+                    idModal: "ModalCancelationBudget",
+                    tituloModal: "Confirmación de cancelación",
+                    mensaje: "¿Está seguro de cancelar la actualización del presupuesto?",
+                    actions: () => {
+                        m.route.set("/budgets");
+                        m.redraw();
+                    }
+                })
             ]
         }
     }
 }
 
-let selectedBudget = null;
-
 function BudgetsListComponent() {
-    let urlBudgets = "../peticionesApi/dataBudgets.json";
     let budgets = [];
 
     return {
         oncreate: function () {
-            m.request({ method: "GET", url: urlBudgets, })
+            m.request({ method: "GET", url: urlBudgets, headers: { "Authorization": `Bearer ${token}` } })
                 .then((data) => {
                     budgets = data.map((item, i) => ({ ...item, index: i + 1 }));
                     m.redraw();
-                }).catch((error) => { console.log("Error al obtener los datos de budgets: ", error); });
+                }).catch(() => { //console.log("Error al obtener los datos de budgets: ", error); 
+                });
         },
-        view: function () {
+        view: function ({ attrs }) {
             if (budgets.length === 0) {
                 return m("div.d-flex.justify-content-center.align-items-center", { style: { height: "30vh" } }, [
                     m("div.spinner-border.text-primary", { role: "status" }, [
@@ -108,69 +163,56 @@ function BudgetsListComponent() {
             ];
 
             const onRowClick = (budget) => {
-                selectedBudget = budget;
-                new bootstrap.Modal(document.getElementById("ModalDetailsBudgetsList")).show();
-                m.redraw();
-            };
+                m.request({ method: "GET", url: urlBudgetDetails + budget.budget_id, headers: { "Authorization": `Bearer ${token}` } })
+                    .then((data) => {
+                        attrs.onBudgetSelect(budget, data)
+                        new bootstrap.Modal(document.getElementById("ModalDetailsBudgetsList")).show();
+                        m.redraw()
+                    })
+                    .catch(() => { attrs.onBudgetSelect(budget, null); new bootstrap.Modal(document.getElementById("ModalDetailsBudgetsList")).show() })
 
-            return m(TableListComponent, {
-                columns: columns,
-                data: budgets,
-                onRowClick: onRowClick
-            }, [
-                m(ButtonComponent, { actions: () => m.route.set("/budget/create/0"), text: "Crear Presupuesto" })
-            ])
+            }
+            return [
+                m(TableListComponent, { columns: columns, data: budgets, onRowClick: onRowClick },
+                    [m(ButtonComponent, { actions: () => m.route.set("/budget/create/0"), text: "Crear Presupuesto" })]
+                )
+            ]
         }
     };
 }
 
 function BudgetModalDetailsComponent() {
-    let urlBudgetDetails = "../peticionesApi/dataBudgetDetails.json";
-
-    let selectedBudgetDetails = [];
-    let tituloModal
-    let total = 0
-
-    const columns = [
-        //{ title: "ID Presupuesto", field: "budget_id" },
-        { title: "Concepto", field: "concept" },
-        { title: "Descripción", field: "description" },
-        { title: "Cantidad", field: "quantity" },
-        { title: "Impuestos", field: "typeTaxe", },
-        { title: "Descuento", field: "discount", euroSign: "€" },
-        { title: "P/U", field: "unit_price", euroSign: "€" },
-        { title: "Subtotal", field: "subtotal", euroSign: "€" }
-    ];
-
-    function fetchDetails() {
-        if (selectedBudget) {
-            m.request({ method: "GET", url: urlBudgetDetails })
-                .then((data) => {
-                    let filtered = data.filter((detail) => detail.budget_id == selectedBudget.id);
-                    selectedBudgetDetails = filtered.length > 0 ? filtered : null;
-                    tituloModal = `Detalles del Presupuesto ${selectedBudget.budget_number}`
-                    total = selectedBudgetDetails.reduce((sum, item) => sum + item.subtotal, 0)
-                })
-                .catch((error) => console.log("Error al obtener los detalles:", error));
-        }
-    }
     return {
-        oncreate: fetchDetails,
-        onupdate: fetchDetails,
         view: function ({ attrs }) {
+            const { idModal, tituloModal, budget, budgetDetails } = attrs
+            //console.log("Content de atrrs: ", attrs);
+
+            let total = 0
+            if (budgetDetails) {
+                total = budgetDetails.reduce((sum, item) => sum + Number(item.subtotal), 0);
+            }
+
+            const columns = [
+                { title: "Concepto", field: "concept" },
+                { title: "Descripción", field: "description" },
+                { title: "Cantidad", field: "quantity" },
+                { title: "Impuestos", field: "tax" },
+                { title: "Descuento", field: "discount", euroSign: "€" },
+                { title: "P/U", field: "unit_price", euroSign: "€" },
+                { title: "Subtotal", field: "subtotal", euroSign: "€" }
+            ];
 
             const ContentHeaderModal = () =>
                 [
                     m(ButtonComponent, {
                         closeModal: true, bclass: "btn-danger", text: "Eliminar Presupuesto",
                         actions: () => new bootstrap.Modal(document.getElementById("ModalDeleteBudget"), { backdrop: true }).show()
-
                     },
                         m("i.fa-solid.fa-trash-can", { style: { color: "white" } })
                     ),
                     m(ButtonComponent, {
                         closeModal: true, bclass: "btn-warning", text: "Editar Presupuesto ",
-                        actions: () => m.route.set(`/budget/update/${selectedBudget.budget_number}`)
+                        actions: () => m.route.set(`/budget/update/${budget.budget_number}`)
                     },
                         m("i.fa-solid.fa-pen-to-square")
                     )]
@@ -184,11 +226,14 @@ function BudgetModalDetailsComponent() {
                                 columns.map((col) => m("th", { scope: "col" }, col.title))
                             ),
                         ]),
-                        m("tbody", selectedBudgetDetails ? selectedBudgetDetails.map((detail, index) =>
-                            m("tr.text-center", [m("td", (index + 1)), columns.map((col) => m("td", [detail[col.field] || "N/A", col.euroSign && detail[col.field] ? col.euroSign : ""]))])
-                        ) : null),
+                        m("tbody",
+                            budgetDetails
+                                ? budgetDetails.map((detail, index) =>
+                                    m("tr.text-center", [m("td", (index + 1)), columns.map((col) => m("td", [detail[col.field] || "N/A", col.euroSign && detail[col.field] ? col.euroSign : ""]))])
+                                )
+                                : m("tr.text-center", m("td[colspan=8]", "No hay detalles disponibles"))),
                         m("tfoot", [
-                            m("tr", m("th[colspan=8].text-end", `Total ${total.toFixed(2)} €`))
+                            m("tr", m("th[colspan=8].text-end", `Total ${(+total).toFixed(2)} €`))
                         ])
                     ]),
                 ])
@@ -199,27 +244,26 @@ function BudgetModalDetailsComponent() {
                 )
 
             return m(ModalComponent, {
-                idModal: attrs.idModal,
+                idModal: idModal,
                 title: tituloModal,
-                addBtnClose: true
-            }, [
-                ContentHeaderModal(),
-                ContentBodyModal(),
-                ContentFooterModal()
-            ])
+                addBtnClose: true,
+                slots: {
+                    header: ContentHeaderModal(),
+                    body: ContentBodyModal(),
+                    footer: ContentFooterModal(),
+                }
+            })
         }
     }
 }
 
-function BudgetModalConfirmationComponent() {
-
+function BudgetModalConfirmation() {
     return {
         view: function ({ attrs }) {
-            const { idModal, titulo, mensaje, slug } = attrs
+            const { idModal, tituloModal, mensaje, actions } = attrs
 
             const ContentBodyModal = () =>
                 m("p.text-center", mensaje)
-
             const ContentFooterModal = () =>
                 m("div.col-12.d-flex.justify-content-center", [
                     m("div.col-md-6.d-flex.flex-md-row.justify-content-between", [
@@ -227,20 +271,23 @@ function BudgetModalConfirmationComponent() {
                         m(ButtonComponent, {
                             closeModal: true,
                             class: "btn btn-success ",
-                            actions: () => m.route.set('/budgets'),
+                            actions: actions,
                             text: "Aceptar"
                         })
                     ])
                 ])
-            return m(ModalComponent, { idModal: idModal, title: titulo },
-                [
-                    null,
-                    ContentBodyModal(),
-                    ContentFooterModal()
-                ])
+            return m(ModalComponent, {
+                idModal: idModal,
+                title: tituloModal,
+                slots: {
+                    body: ContentBodyModal(),
+                    footer: ContentFooterModal(),
+                }
+            })
         }
     }
 }
+
 
 function FormBudgetComponent() {
 
@@ -343,7 +390,7 @@ function FormBudgetComponent() {
 
 
     const fetchData = (url, mapFn = (x) => x) =>
-        m.request({ method: "GET", url }).then(data => mapFn(data)).catch(console.error);
+        m.request({ method: "GET", url }).then(data => mapFn(data)).catch(/* console.error */);
 
     const totalBudget = () =>
         state.conceptItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2);
@@ -363,7 +410,7 @@ function FormBudgetComponent() {
                 email: e.target.email.value,
                 password: e.target.password.value,
             };
-            //console.log("Enviando datos: ", JSON.stringify(loginData));
+            ////console.log("Enviando datos: ", JSON.stringify(loginData));
             m.request({
                 method: "POST",
                 url: urlLogin,
@@ -377,18 +424,18 @@ function FormBudgetComponent() {
             }).then((data) => {
                 if (data.status === 200 && data.response.user != null) {
                     this.badCredentials = false;
-                    
+
                 }
                 if (data.status === 401 && data.response.user == null) {
                     this.badForm = true;
 
                 }
                 m.redraw();
-            }).catch((error) => {
+            }).catch(() => {
             });
         },
         oncreate: ({ attrs }) => {
-            const { typeForm, budget_number } = attrs;
+            const { budget_number } = attrs;
 
             fetchData(urls.clients, data => {
                 state.clients = data.map(c => ({
@@ -411,7 +458,7 @@ function FormBudgetComponent() {
             if (budget_number) {
                 fetchData(urls.Budgets).then(budgets => {
                     state.selectedBudget = budgets.find(b => b.budget_number == budget_number);
-                    console.log("Contenido de state.selectedBudget", state.selectedBudget);
+                    //console.log("Contenido de state.selectedBudget", state.selectedBudget);
                     state.headerDocumentUpdate = [
                         createHeaderDocument({
                             inputClient: state.selectedBudget.client_id,
@@ -420,12 +467,12 @@ function FormBudgetComponent() {
                             inputCreation: today,
                             inputExpiration: today,
                         })]
-                    console.log("Contenido de state.headerDocumentUpdate", state.headerDocumentUpdate);
+                    //console.log("Contenido de state.headerDocumentUpdate", state.headerDocumentUpdate);
 
                     return fetchData(urls.BudgetDetails);
                 }).then(details => {
                     state.budgetDetails = details.filter(d => d.budget_id === state.selectedBudget?.id);
-                    console.log("Contenido de state.budgetDetails", state.budgetDetails);
+                    //console.log("Contenido de state.budgetDetails", state.budgetDetails);
                     state.conceptItemsUpdate = state.budgetDetails.map((item) =>
                         createConcept({
                             concept: item.concept,
@@ -437,7 +484,7 @@ function FormBudgetComponent() {
                             subtotal: item.subtotal
                         })
                     )
-                    console.log("Contenido de state.conceptItemsUpdate", state.conceptItemsUpdate);
+                    //console.log("Contenido de state.conceptItemsUpdate", state.conceptItemsUpdate);
                     m.redraw();
                 });
             }
@@ -561,7 +608,7 @@ function FormBudgetComponent() {
                     // Suub Total
                     m("div.col-md-2.mt-2", [
                         m("label.form-label", "SubTotal"),
-                        m("input.form-control[readonly]", { id:`subtotal-${index}`,  value: `${item.subtotal.toFixed(2)} €` })
+                        m("input.form-control[readonly]", { id: `subtotal-${index}`, value: `${item.subtotal.toFixed(2)} €` })
                     ])
                 ])
 

@@ -211,12 +211,9 @@ function TableListComponent() {
 // ==================== Componentes para la estructura Modal ========================================
 function ModalComponent() {
     return {
-        view: function ({ attrs, children }) {
+        view: function ({ attrs }) {
             const { idModal, title, addBtnClose } = attrs
-            const contentHeaderModal = children[0]
-            const contentBodyModal = children[1]
-            const contentFooterModal = children[2]
-
+            const slots = attrs.slots || {};
             return m("div.modal.fade", { id: idModal, tabindex: "-1", ariaLabelledby: idModal, ariaHidden: "true", }, [
                 m("div.modal-dialog.modal-lg.modal-dialog-centered", [
                     m("div.modal-content", [
@@ -224,10 +221,10 @@ function ModalComponent() {
                             m("h1.modal-title.fs-5", { id: "ModalGeneral", style: { fontWeight: "bold" } }, title),
                             m("button.btn-close", { "data-bs-dismiss": "modal", arialLabel: "close", }),
                         ]),
-                        contentHeaderModal && m("div.modal-header.d-flex.justify-content-center.gap-2", contentHeaderModal),
-                        m("div.modal-body.d-flex.justify-content-center", contentBodyModal ? contentBodyModal : "Cargando detalles..."),
+                        slots.header && m("div.modal-header.d-flex.justify-content-center.gap-2", slots.header),
+                        m("div.modal-body.d-flex.justify-content-center", slots.body ? slots.body : "Cargando detalles..."),
                         m("div.modal-footer", [
-                            contentFooterModal ? contentFooterModal : null,
+                            slots.footer && slots.footer,
                             addBtnClose && m("button.btn.btn-outline-secondary.mt-3", { "data-bs-dismiss": "modal", style: { fontWeight: "bold" } }, "Cerrar"),
                         ]),
                     ]),

@@ -41,34 +41,33 @@ function FormComponent() {
                     }
                 }
             }).then((data) => {
-                if (data.status === 200 && data.response.user != null) {
+                console.log("data: ", data);
+                if (data.status === 200 && data.response.token ) {
                     this.badCredentials = false;
                     // se guardar token de acuerdo a la opción "Recuérdame"
                     if (loginData.remember) {
-                        localStorage.setItem("auth_token", data.response.token);
+                        localStorage.setItem("token", data.response.token);
                     } else {
-                        sessionStorage.setItem("auth_token", data.response.token);
+                        sessionStorage.setItem("token", data.response.token);
                     }
-                    localStorage.setItem("user", data.response.user.id);
                     m.route.set("/home");
                 }
-                if (data.status === 401 && data.response.user == null) {
+                if (data.status === 401 && !data.response.token) {
                     this.badCredentials = true;
                     localStorage.clear();
                     sessionStorage.clear();
-                    alert(data.response.message)
                 }
                 m.redraw();
             }).catch((error) => {
+                console.log("Error: ", error);
             });
         },
-        oncreate: function () {
-            if (localStorage.getItem("auth_token")) {
+        /* oninit: function () {
+            let token = localStorage.getItem("token") || sessionStorage.getItem("token")
+            if (token) {
                 m.route.set("/home");
-            } else {
-                m.route.set("/login");
             }
-        },
+        }, */
         view: function () {
             return m("div.col-lg-6.col-10", { style: { ...style.containerStyle } }, [
                 m("div.g-3", [
@@ -77,7 +76,7 @@ function FormComponent() {
                 m("div.col-lg-8.col-md-10.col-12", [
                     m("form.row.g-3", { onsubmit: (e) => this.login(e) }, [
                         m("input", { type: "text", name: "email", placeholder: "Username or Email", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
-                        m("input", { type: "password", name: "password", placeholder: "Password",  autocomplete:"current-password", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
+                        m("input", { type: "password", name: "password", placeholder: "Password", autocomplete: "current-password", style: { ...style.inputStyle, ...(this.badCredentials ? style.badCredentials : {}) } }),
                         this.badCredentials ?
                             m("p.text-center", { style: { color: "red", fontSize: "14px" } }, "Usuario o contraseña incorrectos")
                             : null,
