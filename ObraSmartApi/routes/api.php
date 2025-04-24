@@ -43,29 +43,31 @@ Route::middleware([IsUserAuth::class])->group(function () {
     Route::controller(BudgetDetailController::class)->group(function () {
         Route::get('/budgets-details/{id?}', 'index');
         //Route::get('/budgets-details/{id}', 'show');
-        Route::post('/budgets-details', 'store');
-        Route::put('/budgets-details/{id}', 'update');
-        Route::patch('/budgets-details/{id}', 'update');
-        Route::delete('/budgets-details/{id}', 'destroy');
+        //Route::post('/budgets-details', 'store');
+        //Route::put('/budgets-details/{id}', 'update');
+        //Route::patch('/budgets-details/{id}', 'update');
+        //Route::delete('/budgets-details/{id}', 'destroy');
     });
 
     //Rutas de ClientController
     Route::controller(ClientController::class)->group(function () {
-        Route::get('/budgets', 'index');
-        Route::get('/budgets/{id}', 'show');
-        Route::post('/budgets', 'store');
-        Route::put('/budgets/{id}', 'update');
-        Route::patch('/budgets/{id}', 'update');
-        Route::delete('/budgets/{id}', 'destroy');
+        Route::get('/clients', 'index');
+        Route::get('/clients/{id}', 'show');
+        Route::post('/clients', 'store');
+        Route::put('/clients/{id}', 'update');
+        Route::patch('/clients/{id}', 'update');
+        Route::delete('/clients/{id}', 'destroy');
     });
+
+
 
     //Rutas de ProjectController
     Route::controller(ProjectController::class)->group(function () {
-        Route::get('/budgets', 'index');
-        Route::get('/budgets/{id}', 'show');
-        Route::post('/budgets', 'store');
-        Route::put('/budgets/{id}', 'update');
-        Route::patch('/budgets/{id}', 'update');
+        Route::get('/projects', 'index');
+        Route::get('/projects/{id}', 'show');
+        Route::post('/projects', 'store');
+        Route::put('/projects/{id}', 'update');
+        Route::patch('/projects/{id}', 'update');
         Route::delete('/budgets/{id}', 'destroy');
     });
 
@@ -84,5 +86,6 @@ Route::middleware([IsUserAuth::class])->group(function () {
             Route::patch('/budgets/{id}', 'updateBudgetById');
             Route::post('/budgets/{id}', 'deleteBudgetById');
         });
-    }); */
+    }); 
+    */
 });

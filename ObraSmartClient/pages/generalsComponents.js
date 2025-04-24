@@ -6,6 +6,11 @@ function BaseComponent() {
     }
 }
 
+export function isAuthenticated() {
+    return localStorage.getItem("token") || sessionStorage.getItem("token")
+}
+
+
 // ==================== Componentes para la estructura Header ========================================
 function HeaderComponent() {
     const menuItems = [

@@ -10,6 +10,7 @@ class Budget extends Model
     use HasFactory;
     protected $primaryKey = 'budget_id';
 
+
     /**
      * The attributes that are mass assignable.
      *
@@ -26,4 +27,9 @@ class Budget extends Model
         'total',
         'status',
     ];
+
+    public function details()
+    {
+        return $this->hasMany(BudgetDetail::class, 'budget_id', 'budget_id');
+    }
 }

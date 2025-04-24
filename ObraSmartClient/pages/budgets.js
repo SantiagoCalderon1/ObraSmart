@@ -1,17 +1,22 @@
-import { TableListComponent, ModalComponent, ButtonComponent } from "./generalsComponents.js";
+import { isAuthenticated, TableListComponent, ModalComponent, ButtonComponent } from "./generalsComponents.js";
 
 //Varibales Globales
 
 /* 
 Json de prueba
 
-let urlBudgets = "../peticionesApi/dataBudgets.json";
-let urlBudgetDetails = "../peticionesApi/dataBudgetDetails.json";
+let URLS.urlBudgets = "../peticionesApi/dataBudgets.json";
+let URLS.urlBudgetDetails = "../peticionesApi/dataBudgetDetails.json";
 */
 
 //Api Real
-const urlBudgets = "http://127.0.0.1:8000/api/budgets"
-const urlBudgetDetails = "http://127.0.0.1:8000/api/budgets-details/"
+const URLS = {
+    Budgets: "http://127.0.0.1:8000/api/budgets",
+    BudgetDetails: "http://127.0.0.1:8000/api/budgets-details/",
+    Clients: "http://127.0.0.1:8000/api/clients/",
+    Projects: "http://127.0.0.1:8000/api/projects/",
+}
+
 const token = localStorage.getItem("token") || sessionStorage.getItem("token")
 
 function BudgetsPage() {
@@ -65,7 +70,7 @@ function BudgetsListPage() {
                     tituloModal: "Confirmación de eliminación",
                     mensaje: `¿Está seguro de eliminar el presupuesto con #${selectedBudget?.budget_number}?`,
                     actions: () => {
-                        m.request({ method: "DELETE", url: urlBudgets + "/" + selectedBudget?.budget_id, headers: { "Authorization": `Bearer ${token}` } })
+                        m.request({ method: "DELETE", url: URLS.Budgets + "/" + selectedBudget?.budget_id, headers: { "Authorization": `Bearer ${token}` } })
                             .then((data) => {
                                 console.log("Data de eliminación: ", data);
                                 m.redraw();
@@ -125,7 +130,7 @@ function BudgetsListComponent() {
 
     return {
         oncreate: function () {
-            m.request({ method: "GET", url: urlBudgets, headers: { "Authorization": `Bearer ${token}` } })
+            m.request({ method: "GET", url: URLS.Budgets, headers: { "Authorization": `Bearer ${token}` } })
                 .then((data) => {
                     budgets = data.map((item, i) => ({ ...item, index: i + 1 }));
                     m.redraw();
@@ -163,7 +168,7 @@ function BudgetsListComponent() {
             ];
 
             const onRowClick = (budget) => {
-                m.request({ method: "GET", url: urlBudgetDetails + budget.budget_id, headers: { "Authorization": `Bearer ${token}` } })
+                m.request({ method: "GET", url: URLS.BudgetDetails + budget.budget_id, headers: { "Authorization": `Bearer ${token}` } })
                     .then((data) => {
                         attrs.onBudgetSelect(budget, data)
                         new bootstrap.Modal(document.getElementById("ModalDetailsBudgetsList")).show();
@@ -297,13 +302,6 @@ function FormBudgetComponent() {
 
     const today = new Date().toISOString().split("T")[0];
 
-    const urls = {
-        clients: "../peticionesApi/dataClients.json",
-        projects: "../peticionesApi/dataProjects.json",
-        BudgetDetails: "../peticionesApi/dataBudgetDetails.json",
-        Budgets: "../peticionesApi/dataBudgets.json"
-    };
-
     // Impuestos estaticos
     const taxes = [
         { value: 0, content: "0% IVA" },
@@ -384,82 +382,115 @@ function FormBudgetComponent() {
         budgetDetails: [],
         filterClients: "",
         filterProjects: "",
-        headerDocumentUpdate: [],
+        headerDocument: [createHeaderDocument()],
         conceptItemsUpdate: []
     };
 
+    const collectFormData = () => {
+        return {
+            header: { ...state.headerDocument[0] },
+            concepts: [...(state.conceptItemsUpdate.length ? state.conceptItemsUpdate : state.conceptItems)]
+        };
+    }
 
-    const fetchData = (url, mapFn = (x) => x) =>
-        m.request({ method: "GET", url }).then(data => mapFn(data)).catch(/* console.error */);
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
 
-    const totalBudget = () =>
-        state.conceptItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2);
+        const dataToSend = collectFormData();
+
+        // Validación básica
+        if (!dataToSend.header.inputClient || !dataToSend.header.inputProject) {
+            alert("Por favor, selecciona cliente y proyecto.");
+            return;
+        }
+
+        console.log("DataToSend: ", dataToSend);
+
+        const token = isAuthenticated()
+
+        if (!token) {
+            console.log("No hay token, redirigiendo a /login")
+            m.route.set("/login")
+            return
+        }
+
+        m.request({
+            method: state.selectedBudget ? "PUT" : "POST", // "PUT" si estás actualizando
+            url: state.selectedBudget ? URLS.Budgets + "/" + state.selectedBudget.budget_id : URLS.Budgets,
+            body: dataToSend,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        }).then(response => {
+            console.log("Formulario enviado con éxito:", response);
+            // Aquí puedes redirigir, cerrar modal, o resetear formulario
+        }).catch(err => {
+            console.error("Error al enviar el formulario:", err);
+        });
+    }
+
+
+    const fetchData = (url, mapFn = (x) => x) => {
+        const token = isAuthenticated();
+        return m.request({
+            method: "GET",
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        }).then(data => mapFn(data)).catch(/* console.error */)
+    }
+
+    const totalBudget = () => state.conceptItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2);
 
     const updateConceptSubtotal = (item) => {
-        const pBruto = item.quantity * item.unit_price
-        const pNeto = pBruto * (1 + parseFloat(item.tax || 0) / 100)
-        item.subtotal = Math.max(pNeto - item.discount, 0)
-        m.redraw()
+        const tax = parseFloat(item.tax || 0);
+        const quantity = parseFloat(item.quantity || 0);
+        const unit_price = parseFloat(item.unit_price || 0);
+        const discount = parseFloat(item.discount || 0);
+
+        const pBruto = quantity * unit_price;
+        const pNeto = pBruto * (1 + tax / 100);
+
+        item.subtotal = Math.max(pNeto - discount, 0);
+        m.redraw();
     };
 
     return {
         badForm: false,
-        login: function (e) {
-            e.preventDefault();
-            let loginData = {
-                email: e.target.email.value,
-                password: e.target.password.value,
-            };
-            ////console.log("Enviando datos: ", JSON.stringify(loginData));
-            m.request({
-                method: "POST",
-                url: urlLogin,
-                body: loginData,
-                extract: (xhr) => {
-                    return {
-                        status: xhr.status,
-                        response: JSON.parse(xhr.responseText)
-                    }
-                }
-            }).then((data) => {
-                if (data.status === 200 && data.response.user != null) {
-                    this.badCredentials = false;
 
-                }
-                if (data.status === 401 && data.response.user == null) {
-                    this.badForm = true;
-
-                }
-                m.redraw();
-            }).catch(() => {
-            });
-        },
         oncreate: ({ attrs }) => {
             const { budget_number } = attrs;
 
-            fetchData(urls.clients, data => {
+            fetchData(URLS.Clients, data => {
                 state.clients = data.map(c => ({
-                    id: c.id,
-                    value: c.id,
-                    label: `${c.name} ${c.surname} - ${c.clients_id_document}`
+                    id: c.client_id,
+                    value: c.client_id,
+                    label: `${c.name} ${c.surname} - ${c.client_id_document}`
                 }));
+                console.log("Clientes: ", state.clients);
+
                 m.redraw();
             });
 
-            fetchData(urls.projects, data => {
+            fetchData(URLS.Projects, data => {
+
                 state.projects = data.map(p => ({
-                    id: p.id,
-                    value: p.id,
+                    id: p.project_id,
+                    value: p.project_id,
                     label: `${p.name} - ${p.status}`
                 }));
+                console.log("Proyectos: ", state.projects);
                 m.redraw();
             });
 
             if (budget_number) {
-                fetchData(urls.Budgets).then(budgets => {
+                fetchData(URLS.Budgets).then(budgets => {
                     state.selectedBudget = budgets.find(b => b.budget_number == budget_number);
                     //console.log("Contenido de state.selectedBudget", state.selectedBudget);
-                    state.headerDocumentUpdate = [
+                    state.headerDocument = [
                         createHeaderDocument({
                             inputClient: state.selectedBudget.client_id,
                             inputProject: state.selectedBudget.project_id,
@@ -467,11 +498,14 @@ function FormBudgetComponent() {
                             inputCreation: today,
                             inputExpiration: today,
                         })]
-                    //console.log("Contenido de state.headerDocumentUpdate", state.headerDocumentUpdate);
+                    //console.log("Contenido de state.headerDocument", state.headerDocument);
 
-                    return fetchData(urls.BudgetDetails);
+                    return fetchData(URLS.BudgetDetails);
                 }).then(details => {
-                    state.budgetDetails = details.filter(d => d.budget_id === state.selectedBudget?.id);
+                    console.log("Details:", details);
+                    console.log("Id selected: ", state.selectedBudget);
+
+                    state.budgetDetails = details.filter(d => d.budget_id === state.selectedBudget.budget_id);
                     //console.log("Contenido de state.budgetDetails", state.budgetDetails);
                     state.conceptItemsUpdate = state.budgetDetails.map((item) =>
                         createConcept({
@@ -510,8 +544,8 @@ function FormBudgetComponent() {
                     m("label.form-label", label),
                     m("select.form-select", {
                         id: id,
-                        value: state.headerDocumentUpdate[0]?.[id],
-                        onchange: e => { state.headerDocumentUpdate[0][id] = e.target.value; m.redraw(); },
+                        value: state.headerDocument[0]?.[id],
+                        onchange: e => { state.headerDocument[0][id] = e.target.value; m.redraw(); },
                     },
                         options.map(opt => m("option", { value: opt.value }, opt.label || opt.content))
                     )
@@ -523,9 +557,9 @@ function FormBudgetComponent() {
                     m("input.form-control", {
                         type: "date",
                         id: id,
-                        value: state.headerDocumentUpdate[0]?.[id] || today,
+                        value: state.headerDocument[0]?.[id] || today,
                         oninput: e => {
-                            state.headerDocumentUpdate[0][id] = e.target.value;
+                            state.headerDocument[0][id] = e.target.value;
                             m.redraw();
                         },
                         min: type == 1 ? "" : today,
@@ -590,7 +624,7 @@ function FormBudgetComponent() {
                             },
                             placeholder: "Opcional...",
                             value: item.description,
-                            oninput: e => item.description = e.target.value
+                            oninput: e => { item.description = e.target.value; updateConceptSubtotal(item) }
                         })
                     ]),
                     m("div.col-md-2"),
@@ -599,8 +633,8 @@ function FormBudgetComponent() {
                         m("label.form-label", "Impuestos"),
                         m("select.form-select", {
                             id: `tax-${index}`,
-                            value: item.tax,
-                            onchange: e => { item.tax = e.target.value; m.redraw(); },
+                            value: Number(item.tax ?? 0),
+                            onchange: e => { item.tax = parseFloat(e.target.value); updateConceptSubtotal(item); },
                         },
                             taxes.map(opt => m("option", { value: opt.value }, opt.label || opt.content))
                         )
@@ -608,7 +642,7 @@ function FormBudgetComponent() {
                     // Suub Total
                     m("div.col-md-2.mt-2", [
                         m("label.form-label", "SubTotal"),
-                        m("input.form-control[readonly]", { id: `subtotal-${index}`, value: `${item.subtotal.toFixed(2)} €` })
+                        m("input.form-control[readonly]", { id: `subtotal-${index}`, value: `${Number(item.subtotal ?? 0).toFixed(2)} €` })
                     ])
                 ])
 
@@ -651,7 +685,7 @@ function FormBudgetComponent() {
 
             //Formulario completo y renderizado
             return m("div.col-11.col-md-10", { style: style.containerStyle }, [
-                m("form.row.col-12", { onsubmit: (e) => this.login(e) }, [
+                m("form.row.col-12", { onsubmit: handleFormSubmit }, [
                     m("hr"),
                     m("span.fw-bold.text-uppercase.fs-5", "Cabecera del documento"),
                     m("div.row.col-12.p-0.m-0", [

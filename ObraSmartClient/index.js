@@ -1,4 +1,4 @@
-import { HeaderComponent } from "./pages/generalsComponents.js"
+import { HeaderComponent, isAuthenticated } from "./pages/generalsComponents.js"
 import { HomePage } from "./pages/home.js"
 import { LoginPage } from "./pages/login.js"
 import { BudgetsPage } from "./pages/budgets.js";
@@ -28,9 +28,6 @@ function Logout() {
 }
 
 
-function isAuthenticated() {
-    return localStorage.getItem("token") || sessionStorage.getItem("token")
-}
 
 // Función para proteger rutas con Bearer Token
 function authGuard() {
