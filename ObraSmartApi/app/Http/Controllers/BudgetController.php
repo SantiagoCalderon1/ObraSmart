@@ -7,6 +7,7 @@ use App\Models\BudgetDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BudgetController extends Controller
 {
@@ -72,76 +73,88 @@ class BudgetController extends Controller
     } */
     public function store(Request $request)
     {
-        $data = $request->all();
+        try {
+            DB::beginTransaction();
 
-        $header = $data['header'] ?? [];
-        $concepts = $data['concepts'] ?? [];
+            $data = $request->all();
 
-        $validator = Validator::make($header, [
-            'inputClient'    => 'nullable|exists:clients,client_id',
-            'inputProject'   => 'nullable|exists:projects,project_id',
-            'inputStatus'    => 'nullable|in:Aceptado,Pendiente,Rechazado',
-            'inputCreation'  => 'required|date',
-            'inputExpiration' => 'required|date|after_or_equal:inputCreation',
-        ]);
+            $header = $data['header'] ?? [];
+            $concepts = $data['concepts'] ?? [];
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Error al crear el presupuesto, datos invalidos.',
-                'errors' => $validator->errors(),
-            ], 400);
-        }
-
-        // Generar número único de presupuesto
-        $budgetNumber = 'BGT-' . now()->format('YmdH');
-
-        $budget = Budget::create([
-            'client_id'     => $header['inputClient'],
-            'project_id'    => $header['inputProject'],
-            'user_id'       => Auth::user()->id,
-            'budget_number' => $budgetNumber,
-            'issue_date'    => $header['inputCreation'],
-            'due_date'      => $header['inputExpiration'],
-            'date'          => now(),
-            'status'        => $header['inputStatus'] ?? 'Pendiente',
-            'total'         => collect($concepts)->sum('subtotal'),
-        ]);
-
-        // Insertar conceptos si existen
-        foreach ($concepts as $item) {
-            $conceptValidator = Validator::make($item, [
-                'concept'     => 'required|string|min:5',
-                'quantity'    => 'required|numeric|min:0',
-                'unit_price'  => 'required|numeric|min:0',
-                'description' => 'nullable|string',
-                'tax'         => 'required|numeric|min:0',
-                'discount'    => 'nullable|numeric|min:0',
-                'subtotal'    => 'required|numeric',
+            $validator = Validator::make($header, [
+                'inputClient'    => 'nullable|exists:clients,client_id',
+                'inputProject'   => 'nullable|exists:projects,project_id',
+                'inputStatus'    => 'nullable|in:Aceptado,Pendiente,Rechazado',
+                'tax'       => 'required|number|min:0',
+                'inputCreation'  => 'required|date',
+                'inputExpiration' => 'required|date|after_or_equal:inputCreation',
+                'conditions' => 'nullable|string'
             ]);
 
-            if ($conceptValidator->fails()) {
+            if ($validator->fails()) {
                 return response()->json([
-                    'message' => 'Error en detalle de presupuesto, datos invalidos.',
-                    'errors' => $conceptValidator->errors(),
+                    'message' => 'Error al crear el presupuesto, datos invalidos.',
+                    'errors' => $validator->errors(),
                 ], 400);
             }
 
-            BudgetDetail::create([
-                'budget_id'   => $budget->budget_id,
-                'concept'     => $item['concept'],
-                'quantity'    => $item['quantity'],
-                'unit_price'  => $item['unit_price'],
-                'description' => $item['description'] ?? '',
-                'tax'         => $item['tax'],
-                'discount'    => $item['discount'] ?? 0,
-                'subtotal'    => $item['subtotal'],
+            $budget = Budget::create([
+                'client_id'     => $header['inputClient'],
+                'project_id'    => $header['inputProject'],
+                'user_id'       => Auth::user()->user_id,
+                'budget_number' => 'BGT-' . now()->format('YmdH'),
+                'tax' => $header['inputTax'],
+                'issue_date'    => $header['inputCreation'],
+                'due_date'      => $header['inputExpiration'],
+                'date'          => now(),
+                'status'        => $header['inputStatus'] ?? 'Pendiente',
+                'total'         => collect($concepts)->sum('subtotal'),
+                'conditions'    => $header['inputConditions']
             ]);
-        }
 
-        return response()->json([
-            'message' => 'Presupuesto creado correctamente',
-            'data' => $budget,
-        ], 201);
+            // Insertar conceptos si existen
+            foreach ($concepts as $item) {
+                $conceptValidator = Validator::make($item, [
+                    'concept'     => 'required|string|min:5',
+                    'quantity'    => 'required|numeric|min:0',
+                    'unit_price'  => 'required|numeric|min:0',
+                    'description' => 'nullable|string',
+                    //'tax'         => 'required|numeric|min:0',
+                    'discount'    => 'nullable|numeric|min:0',
+                    'subtotal'    => 'required|numeric',
+                ]);
+
+                if ($conceptValidator->fails()) {
+                    DB::rollBack(); // rollback inmediato si falla un concepto
+                    return response()->json([
+                        'message' => 'Error en detalle de presupuesto, datos invalidos.',
+                        'errors' => $conceptValidator->errors(),
+                    ], 400);
+                }
+
+                BudgetDetail::create([
+                    'budget_id'   => $budget->budget_id,
+                    'concept'     => $item['concept'],
+                    'quantity'    => $item['quantity'],
+                    'unit_price'  => $item['unit_price'],
+                    'description' => $item['description'] ?? '',
+                    //'tax'         => $item['tax'],
+                    'discount'    => $item['discount'] ?? 0,
+                    'subtotal'    => $item['subtotal'],
+                ]);
+            }
+            DB::commit();
+            return response()->json([
+                'message' => 'Presupuesto creado correctamente',
+                'data'    => $budget->load('details'),
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error interno del servidor al actualizar el presupuesto',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
 
@@ -151,145 +164,142 @@ class BudgetController extends Controller
      * Update the specified resource in storage.
      * url: PUT o  PATCH /budget/{id}
      */
-    /* public function update(Request $request, string $id)
-    {
-        $budget = Budget::find($id);
-
-        if (!$budget) {
-            return response()->json(['message' => 'No budget found'], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'client_id'     => 'nullable|exists:clients,client_id',
-            'project_id'    => 'nullable|exists:projects,project_id',
-            'user_id'       => 'nullable|exists:users,user_id',
-            'budget_number' => 'required|string|unique:budgets,budget_number,' . $id . ',budget_id',
-            'issue_date'    => 'required|date',
-            'due_date'      => 'required|date|after_or_equal:issue_date',
-            'date'          => 'required|date',
-            'total'         => 'required|numeric|min:0',
-            'status'        => 'nullable|in:Aceptado,Pendiente,Rechazado',
-        ]);
-
-        $budget->update($validator);
-
-        return response()->json($budget, 200);
-    } */
     public function update(Request $request, $id)
     {
-        $budget = Budget::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        $data = $request->all();
+            $budget = Budget::findOrFail($id);
+            $data = $request->all();
+            $header = $data['header'] ?? [];
+            $concepts = $data['concepts'] ?? [];
 
-        $header = $data['header'] ?? [];
-        $concepts = $data['concepts'] ?? [];
-
-        $validator = Validator::make($header, [
-            'inputClient'    => 'nullable|exists:clients,client_id',
-            'inputProject'   => 'nullable|exists:projects,project_id',
-            'inputStatus'    => 'nullable|in:Aceptado,Pendiente,Rechazado',
-            'inputCreation'  => 'required|date',
-            'inputExpiration' => 'required|date|after_or_equal:inputCreation',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Error al actualizar el presupuesto',
-                'errors' => $validator->errors(),
-            ], 400);
-        }
-
-        // Actualizar presupuesto
-        $budget->update([
-            'client_id'  => $header['inputClient'],
-            'project_id' => $header['inputProject'],
-            'issue_date' => $header['inputCreation'],
-            'due_date'   => $header['inputExpiration'],
-            'status'     => $header['inputStatus'] ?? 'Pendiente',
-            'total'      => collect($concepts)->sum('subtotal'),
-        ]);
-
-        $existingDetailIds = [];
-
-        foreach ($concepts as $item) {
-            $conceptValidator = Validator::make($item, [
-                'concept'     => 'required|string|min:5',
-                'quantity'    => 'required|numeric|min:0',
-                'unit_price'  => 'required|numeric|min:0',
-                'description' => 'nullable|string',
-                'tax'         => 'required|numeric|min:0',
-                'discount'    => 'nullable|numeric|min:0',
-                'subtotal'    => 'required|numeric',
+            $validator = Validator::make($header, [
+                'inputClient'    => 'required|exists:clients,client_id',
+                'inputProject'   => 'required|exists:projects,project_id',
+                'inputStatus'    => 'nullable|in:Aceptado,Pendiente,Rechazado',
+                'tax'       => 'required|number|min:0',
+                'inputCreation'  => 'required|date',
+                'inputExpiration' => 'required|date|after_or_equal:inputCreation',
+                'conditions' => 'nullable|string'
             ]);
 
-            if ($conceptValidator->fails()) {
+            if ($validator->fails()) {
                 return response()->json([
-                    'message' => 'Error en detalle de presupuesto',
-                    'errors' => $conceptValidator->errors(),
+                    'message' => 'Error al actualizar el presupuesto',
+                    'errors' => $validator->errors(),
                 ], 400);
             }
 
-            if (isset($item['id'])) {
-                // Actualizar detalle existente
-                $detail = BudgetDetail::where('budget_id', $budget->budget_id)
-                    ->where('id', $item['id'])
-                    ->first();
+            $budget->update([
+                'client_id'  => $header['inputClient'],
+                'project_id' => $header['inputProject'],
+                'issue_date' => $header['inputCreation'],
+                'due_date'   => $header['inputExpiration'],
+                'tax' => $header['inputTax'],
+                'status'     => $header['inputStatus'] ?? 'Pendiente',
+                'total'      => collect($concepts)->sum('subtotal'),
+                'user_id'       => Auth::user()->user_id,
+                'conditions'    => $header['inputConditions']
 
-                if ($detail) {
+            ]);
+
+            $existingDetailIds = [];
+
+            foreach ($concepts as $item) {
+                $conceptValidator = Validator::make($item, [
+                    'concept'     => 'required|string|min:5',
+                    'quantity'    => 'required|numeric|min:0',
+                    'unit_price'  => 'required|numeric|min:0',
+                    'description' => 'nullable|string',
+                    //'tax'         => 'required|numeric|min:0',
+                    'discount'    => 'nullable|numeric|min:0',
+                    'subtotal'    => 'required|numeric',
+                ]);
+
+                if ($conceptValidator->fails()) {
+                    return response()->json([
+                        'message' => 'Error en detalle de presupuesto',
+                        'errors' => $conceptValidator->errors(),
+                    ], 400);
+                }
+
+                if (isset($item['budget_concept_id'])) {
+                    // Actualizar detalle existente
+                    $detail = BudgetDetail::where('budget_id', $budget->budget_id)
+                        ->where('budget_concept_id', $item['budget_concept_id'])
+                        ->firstOrFail(); // Usar firstOrFail para lanzar excepción si no existe
+
                     $detail->update([
                         'concept'     => $item['concept'],
                         'quantity'    => $item['quantity'],
                         'unit_price'  => $item['unit_price'],
                         'description' => $item['description'] ?? '',
-                        'tax'         => $item['tax'],
+                        //'tax'         => $item['tax'],
                         'discount'    => $item['discount'] ?? 0,
                         'subtotal'    => $item['subtotal'],
                     ]);
-                    $existingDetailIds[] = $detail->id;
+                    $existingDetailIds[] = $detail->budget_concept_id;
+                } else {
+                    // Crear nuevo detalle
+                    $newDetail = $budget->details()->create([ // Usando la relación
+                        'concept'     => $item['concept'],
+                        'quantity'    => $item['quantity'],
+                        'unit_price'  => $item['unit_price'],
+                        'description' => $item['description'] ?? '',
+                        //'tax'         => $item['tax'],
+                        'discount'    => $item['discount'] ?? 0,
+                        'subtotal'    => $item['subtotal'],
+                    ]);
+                    $existingDetailIds[] = $newDetail->id;
                 }
-            } else {
-                // Crear nuevo detalle
-                $newDetail = BudgetDetail::create([
-                    'budget_id'   => $budget->budget_id,
-                    'concept'     => $item['concept'],
-                    'quantity'    => $item['quantity'],
-                    'unit_price'  => $item['unit_price'],
-                    'description' => $item['description'] ?? '',
-                    'tax'         => $item['tax'],
-                    'discount'    => $item['discount'] ?? 0,
-                    'subtotal'    => $item['subtotal'],
-                ]);
-                $existingDetailIds[] = $newDetail->id;
             }
+
+            // Eliminar detalles que ya no están (usando la relación)
+            $budget->details()
+                ->whereNotIn('budget_concept_id', $existingDetailIds)
+                ->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Presupuesto actualizado correctamente',
+                'data' => $budget->load('details'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error interno del servidor al actualizar el presupuesto',
+                'error' => $e->getMessage(), // No exponer detalles sensibles en producción
+            ], 500);
         }
-
-        // Eliminar detalles que ya no están
-        BudgetDetail::where('budget_id', $budget->budget_id)
-            ->whereNotIn('id', $existingDetailIds)
-            ->delete();
-
-        return response()->json([
-            'message' => 'Presupuesto actualizado correctamente',
-            'data' => $budget->load('details'),
-        ]);
     }
-
 
 
     /**
      * Remove the specified resource from storage.
      * url: DELETE /budget/{id}    
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $budget = Budget::find($id);
+        DB::beginTransaction();
+        try {
+            $budget = Budget::findOrFail($id);
+            // Eliminar todos los detalles asociados a este presupuesto
+            $budget->details()->delete();
+            // Eliminar el presupuesto
+            $budget->delete();
 
-        if (!$budget) {
-            return response()->json(['message' => 'No budget found'], 404);
+            DB::commit();
+            return response()->json([
+                'message' => 'Budget and its details deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error deleting budget and its details',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $budget->delete();
-
-        return response()->json(['message' => 'Budget deleted'], 200);
     }
 }

@@ -17,14 +17,17 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('budget_number')->unique();
+            $table->integer('tax')->nullable();
             $table->date('issue_date');
             $table->date('due_date');
-
             $table->date('date');
             $table->decimal('total', 10, 2);
             $table->enum('status', ['Aceptado', 'Pendiente', 'Rechazado'])->default('Pendiente');
+            $table->text('conditions');
+
+            
             $table->timestamps();
-    
+
             $table->foreign('client_id')->references('client_id')->on('clients')->onDelete('set null');
             $table->foreign('project_id')->references('project_id')->on('projects')->onDelete('set null');
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('set null');

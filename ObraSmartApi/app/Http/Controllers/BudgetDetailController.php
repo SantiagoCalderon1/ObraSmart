@@ -54,7 +54,6 @@ class BudgetDetailController extends Controller
             'discount'     => 'nullable|number|min:0',
             'unit_price'     => 'required|number|min:0',
             'description'     => 'nullable|string',
-            'tax'       => 'required|number|min:0',
             'subtotal'           => 'required|number',
         ]);
 

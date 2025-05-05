@@ -2,220 +2,302 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Presupuesto PDF</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://components.digitalvalue.es/lib/mithril.min.js"></script>
-    <script type="module" src="index.js" defer></script>
+
     <style>
-        * {
-            color: #1d1d1d;
-            padding: 0;
-            margin: 0;
-            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        body {
+            padding: 20px;
+            background-color: white;
         }
 
-        .primaryBtn {
-            background-color: #F2A516;
+        .card {
+            margin-bottom: 20px;
         }
 
-        .secondaryBtn {
-            background-color: #38BDF2;
+        .table th,
+        .table td {
+            font-size: 0.875rem;
         }
 
-        #container-app {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
+        .btn-primary {
+            margin-bottom: 20px;
         }
 
-        #header,
-        #app,
-        #footer {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .page-break {
+            page-break-before: always;
         }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <form action="" class="row g-3">
+    <script>
+        const PresupuestoView = {
+            view: () =>
+                m("div.container.col-10", [
+                    m("button.btn.btn-primary.p-3", { onclick: generatePDF }, "Descargar PDF"),
+                    m("div#pdf-content.bg-white.px-4.rounded.shadow", [
 
-            <div class="col-md-3">
-                <label for="validationServer04" class="form-label">Cliente</label>
-                <!-- Será un select con el nombre del cliente pero con el value client_id -->
-                <select class="form-select is-invalid" id="validationServer04"
-                    aria-describedby="validationServer04Feedback" required>
-                    <option selected disabled value="">Cliente Id...</option>
-                    <option>...</option>
-                </select>
-                <div id="validationServer04Feedback" class="invalid-feedback">
-                    Please select a valid state.
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer04" class="form-label">Projecto</label>
-                <!-- Será un select con el nombre del projecto pero con el value client_id -->
-                <select class="form-select is-invalid" id="validationServer04"
-                    aria-describedby="validationServer04Feedback" required>
-                    <option selected disabled value="">Porjecto Id...</option>
-                    <option>...</option>
-                </select>
-                <div id="validationServer04Feedback" class="invalid-feedback">
-                    Please select a valid state.
-                </div>
-            </div>
-            <div class="col-md-3">
-                <input type="hidden" name="user_id">
-                <!-- Llevará el id del usuario -->
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer04" class="form-label">Projecto</label>
-                <!-- Será un select con el nombre del projecto pero con el value client_id -->
-                <select class="form-select is-invalid" id="validationServer04"
-                    aria-describedby="validationServer04Feedback" required>
-                    <option selected disabled value="">Porjecto Id...</option>
-                    <option>...</option>
-                </select>
-                <div id="validationServer04Feedback" class="invalid-feedback">
-                    Please select a valid state.
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Número de presupuesto</label>
-                <!-- Será un string con el número del presupuesto, empesando por BUD -->
-                <input type="text" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required>
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label for="validationServer03" class="form-label">Fecha:</label>
-                <!-- Será un datepicker del día que quiere que tenga el presupuesto -->
-                <input type="date" class="form-control is-invalid" id="validationServer03"
-                    aria-describedby="validationServer03Feedback" required>
-                <div id="validationServer03Feedback" class="invalid-feedback">
-                    Please provide a valid city.
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label for="validationServer03" class="form-label">Fecha de expiración:</label>
-                <!-- Será un datepicker del día que quiere que caduque el presupuesto -->
-                <input type="date" class="form-control is-invalid" id="validationServer03"
-                    aria-describedby="validationServer03Feedback" required>
-                <div id="validationServer03Feedback" class="invalid-feedback">
-                    Please provide a valid city.
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label for="validationServer03" class="form-label">Total:</label>
-                <!-- Será un datepicker del día que quiere que tenga el presupuesto -->
-                <input type="number" class="form-control is-invalid" id="validationServer03"
-                    aria-describedby="validationServer03Feedback" readonly>
-            </div>
-            <div class="col-md-6">
-                <label for="validationServer04" class="form-label">Estado:</label>
-                <!-- Será un select con 3 opciones, pendiente, aceptado  y rechazado -->
-                <select class="form-select is-invalid" id="validationServer04"
-                    aria-describedby="validationServer04Feedback" required>
-                    <option selected disabled value="">Porjecto Id...</option>
-                    <option>...</option>
-                </select>
-                <div id="validationServer04Feedback" class="invalid-feedback">
-                    Please select a valid state.
-                </div>
-            </div>
+                        // Encabezado
+                        m("div.row", [
+                            m("div.col-md-12.d-flex.justify-content-between.align-items-center", [
+                                m("div.text-center", [
+                                    m("img", {
+                                        src: "../assets/logosObraSmart/logo-1.png",
+                                        alt: "Logo",
+                                        style: "width: 100px; height: 100px;"
+                                    }),
+                                    m("p.mb-0#company-name"),
+                                ]),
+                                m("h1", "Presupuesto"),
+                                m("div.text-end", [
+                                    m("p.mb-0#company-nif"),
+                                    m("p.mb-0#company-phone"),
+                                    m("p.mb-0#company-email"),
+                                    m("p.mb-0#company-address"),
+                                ]),
+                            ]),
+                        ]),
 
-            <!--  parte 2 deñ formulario budgets_details-->
-            <div class="col-md-3">
-                <input type="hidden" name="budget_number">
-                <!-- Llevará el id del usuario -->
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Descripción: </label>
-                <!-- Será un string con el número del presupuesto, empesando por BUD -->
-                <input type="text" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required>
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Cantidad:</label>
-                <!-- Será un string con el número del presupuesto, empesando por BUD -->
-                <input type="number" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required min="1">
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
+                        // Datos cliente/presupuesto
+                        m("div.row.pt-5", [
+                            m("div.card.col-md-12", [
+                                m("div.card-header.bg-light.d-flex.justify-content-between", m("strong", "Datos del presupuesto"), m("strong", "Datos del cliente")),
+                                m("div.card-body.d-flex.justify-content-between.py-1", [
+                                    m("div.text-start", [
+                                        m("p.mb-0", ["Nº: ", m("span#budget-number")]),
+                                        m("p.mb-0", ["Fecha emisión: ", m("span#budget-issue")]),
+                                        m("p", ["Válido hasta: ", m("span#budget-due")])
+                                    ]),
+                                    m("div.text-end", [
+                                        m("p.mb-0#client-name"),
+                                        m("p.mb-0#client-id"),
+                                        m("p.mb-0#client-address"),
+                                        m("p.mb-0#client-phone"),
+                                        m("p.mb-0#client-email"),
+                                    ]),
+                                ])
+                            ]),
+                        ]),
 
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Precio unitario:</label>
-                <!-- Será un string con el número del presupuesto, empesando por BUD -->
-                <input type="number" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required min="0.01">
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label for="validationServer04" class="form-label">Impuestos:</label>
-                <!-- Será un select con muchas opciones, las tengo en la libreta, IVA, IGIC y IPSI -->
-                <select class="form-select is-invalid" id="validationServer04"
-                    aria-describedby="validationServer04Feedback" required>
-                    <option selected disabled value="">Porjecto Id...</option>
-                    <option>...</option>
-                </select>
-                <div id="validationServer04Feedback" class="invalid-feedback">
-                    Please select a valid state.
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Descuento:</label>
-                <!-- minimo 0 -->
-                <input type="number" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required min="0">
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
+                        // Tabla conceptos (primera parte)
+                        m("div.row", [
+                            m("div.card.col-md-12", [
+                                m("div.card-body.p-0", [
+                                    m("table.table.table-striped.m-0", [
+                                        m("thead.table-light", [
+                                            m("tr", [
+                                                m("th", "#"),
+                                                m("th", "Concepto"),
+                                                m("th", "Descripción"),
+                                                m("th", "Cantidad"),
+                                                m("th", "Descuento"),
+                                                m("th", "Precio/U"),
+                                                m("th", "Subtotal")
+                                            ])
+                                        ]),
+                                        m("tbody#concepts-table")
+                                    ])
+                                ]),
+                            ]),
+                        ]),
 
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">SubTotal:</label>
-                <!-- Será el subtotal de cada concepto -->
-                <input type="number" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required min="0">
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
+                        // Segunda tabla generada dinámicamente
+                        m("div#extra-page-container"),
 
-            <!-- Aquí debería ir el total de todo el presupuesto y debe ser automatico en base a los conceptos  -->
+                        // Totales
+                        m("div.row.mt-4", [
+                            m("div.card", [
+                                m("div.card-footer", [
+                                    m("div.text-end", [
+                                        m("p.mb-0", ["SubTotal: ", m("span#budget-number")]),
+                                        m("p.mb-0", ["IVA: ", m("span#budget-number")]),
+                                        m("h5#totals-summary.fw-bold")
+                                    ])
+                                ])
+                            ])
+                        ]),
 
-            <div class="col-md-3">
-                <label for="validationServer05" class="form-label">Adjuntar documentación:</label>
-                <!-- Será un input de tipo file pero solo subir un documento-->
-                <input type="file" class="form-control is-invalid" id="validationServer05"
-                    aria-describedby="validationServer05Feedback" required>
-                <div id="validationServer05Feedback" class="invalid-feedback">
-                    Please provide a valid zip.
-                </div>
-            </div>
+                        // Condiciones
+                        m("div.row", [
+                            m("div.card", [
+                                m("div.card-header.bg-light", m("strong", "Condiciones")),
+                                m("div.card-body", m("p.mb-0#conditions"))
+                            ]),
+                        ]),
 
-            <div class="col-12">
-                <button class="btn btn-primary" type="submit">Submit form</button>
+                        // Firmas
+                        m("div.mt-5.d-flex.justify-content-between", [
+                            m("p", "Firma empresa: ___________________"),
+                            m("p", "Firma cliente: ____________________")
+                        ])
+                    ])
+                ])
+        };
+
+        const DATA = {
+            company: {
+                title: "ObraSmart S.L.",
+                nif: "B12345678",
+                address: "Calle Empresa 123, Ciudad",
+                phone_number: "912345678",
+                email: "info@obrasmart.es"
+            },
+            budget: {
+                budget_number: "PRES-2025-001",
+                due_date: "2025-07-01",
+                issue_date: "2025-06-01"
+            },
+            client: {
+                name: "Juan Pérez",
+                client_id_document: "12345678A",
+                phone: "678123456",
+                email: "juan.perez@email.com",
+                address: "Calle Cliente 456, Ciudad"
+            },
+            concepts: [
+                // Pega aquí tus conceptos
+                { concept: "Servicio A", description: "Descripción A", quantity: 1, discount: 0, unitPrice: 100, tax: 21, subtotal: 100 },
+                { concept: "Servicio B", description: "Descripción B", quantity: 2, discount: 0, unitPrice: 150, tax: 21, subtotal: 300 },
+                // Añade hasta 15 o más para probar el salto de página
+                ...Array.from({ length: 15 }, (_, i) => ({
+                    concept: `Servicio Extra ${i + 1}`,
+                    description: "Descripción",
+                    quantity: 1,
+                    discount: 0,
+                    unitPrice: 100,
+                    tax: 21,
+                    subtotal: 100
+                }))
+            ],
+            conditions: "El presupuesto es válido por 30 días. El pago se realizará en dos plazos: 50% al inicio y 50% al finalizar la obra."
+        };
+
+        function populateData() {
+            const { company, budget, client, concepts, conditions } = DATA;
+
+            // Empresa
+            document.getElementById("company-name").textContent = company.title;
+            document.getElementById("company-nif").textContent = `NIF: ${company.nif}`;
+            document.getElementById("company-address").textContent = `${company.address}`;
+            document.getElementById("company-phone").textContent = `${company.phone_number}`;
+            document.getElementById("company-email").textContent = `${company.email}`;
+
+            // Presupuesto
+            document.getElementById("budget-number").textContent = budget.budget_number;
+            document.getElementById("budget-issue").textContent = budget.issue_date;
+            document.getElementById("budget-due").textContent = budget.due_date;
+
+            // Cliente
+            document.getElementById("client-name").textContent = `Nombre: ${client.name}`;
+            document.getElementById("client-id").textContent = `NIF: ${client.client_id_document}`;
+            document.getElementById("client-phone").textContent = `Teléfono: ${client.phone}`;
+            document.getElementById("client-email").textContent = `Email: ${client.email}`;
+            document.getElementById("client-address").textContent = `${client.address}`;
+
+            // Conceptos
+            const tbody = document.getElementById("concepts-table");
+            tbody.innerHTML = "";
+            let total = 0;
+
+            const chunkLimit = 12;
+            const firstChunk = concepts.slice(0, chunkLimit);
+            const secondChunk = concepts.slice(chunkLimit);
+
+            firstChunk.forEach((item, i) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${item.concept}</td>
+          <td>${item.description}</td>
+          <td>${item.quantity}</td>
+          <td>${item.discount}%</td>
+          <td>${item.unitPrice} €</td>
+          <td>${item.subtotal.toFixed(2)} €</td>`;
+                total += item.subtotal;
+                tbody.appendChild(tr);
+            });
+
+            if (secondChunk.length > 0) {
+                const extraContainer = document.getElementById("extra-page-container");
+                extraContainer.innerHTML = `
+          <div class="page-break"></div>
+          <div class="row mb-4">
+            <div class="col-md-12 d-flex justify-content-between align-items-center">
+              <div class="text-center">
+                <img src="../assets/logosObraSmart/logo-1.png" alt="Logo" style="width: 100px; height: 100px;">
+                <p class="mb-0">${company.title}</p>
+              </div>
+              <h1>Presupuesto</h1>
+              <div class="text-end">
+                <p class="mb-0">NIF: ${company.nif}</p>
+                <p class="mb-0">${company.phone_number}</p>
+                <p class="mb-0">${company.email}</p>
+                <p class="mb-0">${company.address}</p>
+              </div>
             </div>
-    </div>
-    </form>
+          </div>
+          <div class="row">
+            <div class="card col-md-12">
+              <div class="card-body p-0">
+                <table class="table table-striped m-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Concepto</th>
+                      <th>Descripción</th>
+                      <th>Cantidad</th>
+                      <th>Descuento</th>
+                      <th>Precio/U</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="second-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+                const secondTbody = document.getElementById("second-table-body");
+                secondChunk.forEach((item, i) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+            <td>${i + chunkLimit + 1}</td>
+            <td>${item.concept}</td>
+            <td>${item.description}</td>
+            <td>${item.quantity}</td>
+            <td>${item.discount}%</td>
+            <td>${item.unitPrice} €</td>
+            <td>${item.subtotal.toFixed(2)} €</td>`;
+                    total += item.subtotal;
+                    secondTbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById("totals-summary").innerHTML = `Total Presupuesto: ${total.toFixed(2)} €`;
+
+            document.getElementById("conditions").textContent = conditions;
+        }
+
+        function generatePDF() {
+            const element = document.getElementById("pdf-content");
+            html2pdf().set({
+                margin: 7.5,
+                filename: 'presupuesto.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(element).save();
+        }
+
+        m.mount(document.body, PresupuestoView);
+        populateData();
+    </script>
 </body>
 
 </html>

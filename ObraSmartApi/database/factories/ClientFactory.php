@@ -22,7 +22,9 @@ class ClientFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'  => $this->faker->company,
+            //'name'  => $this->faker->company,
+            'name'  => $this->faker->name,
+            'surname'  => $this->faker->lastName,
             'type_document' => $this->faker->randomElement(['dni', 'pasaporte', 'nie', 'nif']),
             'client_id_document' => $this->faker->unique()->numerify('####'),
             'email' => $this->faker->unique()->safeEmail,

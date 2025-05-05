@@ -19,7 +19,6 @@ return new class extends Migration
             $table->decimal('discount', 10, 2);
             $table->decimal('unit_price', 10, 2)->nullable();
             $table->text('description');
-            $table->decimal('tax', 10, 2)->nullable();
             $table->decimal('subtotal', 10, 2)->nullable();
             $table->timestamps();
             $table->foreign('budget_id')->references('budget_id')->on('budgets')->onDelete('cascade');

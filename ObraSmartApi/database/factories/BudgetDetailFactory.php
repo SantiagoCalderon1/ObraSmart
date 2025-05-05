@@ -28,7 +28,7 @@ class BudgetDetailFactory extends Factory
             'discount' => $this->faker->randomFloat(2, 0, 50), 
             'unit_price' => $this->faker->randomFloat(2, 10, 500),
             'description' => $this->faker->sentence(),
-            'tax' => $this->faker->randomFloat(2, 1, 50), 
+            
             'subtotal' => $this->faker->randomFloat(2, 50, 1000),
         ];
     }

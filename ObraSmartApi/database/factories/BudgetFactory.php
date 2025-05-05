@@ -19,11 +19,13 @@ class BudgetFactory extends Factory
             'project_id'    => Project::inRandomOrder()->value('project_id'),
             'user_id'       => User::inRandomOrder()->value('user_id'),
             'budget_number' => 'BGT-' . $this->faker->unique()->numerify('####'),
+            'tax' => $this->faker->randomElement([21, 10]),
             'issue_date'    => $this->faker->date(),
             'due_date'      => $this->faker->date(),
             'date'          => $this->faker->date(),
             'total'         => $this->faker->randomFloat(2, 1000, 10000),
             'status'        => $this->faker->randomElement(['Aceptado', 'Pendiente', 'Rechazado']),
+            'conditions' => $this->faker->text(50)
         ];
     }
 }

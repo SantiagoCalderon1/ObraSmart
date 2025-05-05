@@ -68,7 +68,7 @@ Route::middleware([IsUserAuth::class])->group(function () {
         Route::post('/projects', 'store');
         Route::put('/projects/{id}', 'update');
         Route::patch('/projects/{id}', 'update');
-        Route::delete('/budgets/{id}', 'destroy');
+        Route::delete('/projects/{id}', 'destroy');
     });
 
     /*  // Aqui van las rutas que pueden acceder bien sea Admin o User
